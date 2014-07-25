@@ -15,7 +15,8 @@ class Pugbot(irc.bot.SingleServerIRCBot):
         self.pugSize = config["size"]
 
         self.Q = []
-
+        self.maps = ["abbey", "algiers", "austria", "bohemia", "casa", "docks", "dressingroom", "eagle", "elgin", "kingdom", "kingdom_rc6", "mandolin", "prague", "riyadh", "sanc", "snoppis", "subway", "swim", "thingley", "tunis", "turnpike", "uptown"]
+        self.votes = {}
 
     def say(self, msg):
         self.connection.privmsg(self.channel, msg)
@@ -119,7 +120,34 @@ class Pugbot(irc.bot.SingleServerIRCBot):
             else:
                 queue += p
         self.reply(queue)
-                
+
+    def cmd_maps(self, issuedBy, data):
+        """.maps - list maps that are able to be voted"""
+        self.say("Maps: abbey, algiers, austria, bohemia, casa, docks, dressingroom, eagle, elgin, kingdom, kingdom_rc6, mandolin, prague, riyadh, sanc, snoppis, subway, swim, thingley, tunis, turnpike, uptown")
+
+    def cmd_vote(self, issuedBy, data):
+        """.vote - vote for a map"""
+        if issuedBy not in self.Q:
+            self.reply("You are not in the queue")
+        else:
+            if data not in self.maps:
+                self.reply("{0} is not a valid map".format(data))
+        
+            if data in self.maps:
+                self.votes[issuedBy] = data
+                self.say("{0} voted for {1}".format(issuedBy, data))
+
+    def cmd_votes(self, issuedBy, data):
+        """.votes - show number of votes per map"""
+
+        mapvotes = self.votes.values()
+        tallies = dict((map, mapvotes.count(map)) for map in mapvotes)
+
+        if len(self.votes) == 0:
+            self.reply("There are no current votes")
+        else:
+            for map in tallies:
+                self.reply("{0}: {1} vote{2}".format(map, tallies[map], "" if tallies[map] == 1 else "s"))
 
 if __name__ == "__main__":
     try:
@@ -130,7 +158,7 @@ if __name__ == "__main__":
             "server": "irc.quakenet.org",
             "port": 6667,
             "prefixes": "!@>.",
-            "channel": "#nuubs",
+            "channel": "#pugbot-ng",
             "nick": "pugbot-ng",
             "owner": ""
         }

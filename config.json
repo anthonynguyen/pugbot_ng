@@ -2,7 +2,7 @@
 "server": "irc.quakenet.org",
 "port": 6667,
 "prefixes": "!>@.",
-"channel": "#nuubs",
+"channel": "#pugbot-ng",
 "nick": "pugbot-ng",
 "owner": "",
 "size": 2
