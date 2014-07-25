@@ -4,6 +4,13 @@ import irc.bot
 import json
 import random
 
+def genRandomString(length):
+	alpha = "abcdefghijklmnopqrstuvwxyz"
+	string = ""
+	for _ in range(length):
+		string += random.choice(alpha)
+	return string
+
 class Pugbot(irc.bot.SingleServerIRCBot):
 	def __init__(self, config):
 		super(Pugbot, self).__init__([(config["server"], config["port"])], config["nick"], config["nick"])
@@ -36,11 +43,7 @@ class Pugbot(irc.bot.SingleServerIRCBot):
 	def on_welcome(self, conn, e):
 		conn.join(self.channel)
 
-		alpha = "abcdefghijklmopqrstuvwxyz"
-		password = ""
-		for _ in range(5):
-			password += random.choice(alpha)
-		self.password = password
+		password = genRandomString(5)
 
 		print("The password is: " + password)
 		if self.owner != "":
