@@ -12,6 +12,9 @@ class Pugbot(irc.bot.SingleServerIRCBot):
         self.cmdPrefixes = config["prefixes"]
         self.owner = config["owner"]
         self.password = ""
+        self.pugSize = config["size"]
+
+        self.Q = []
 
 
     def say(self, msg):
@@ -81,10 +84,42 @@ class Pugbot(irc.bot.SingleServerIRCBot):
             self.die("{} doesn't like me :<".format(issuedBy))
         else:
             self.reply("You can't run that command without a password")
+    
+    def cmd_join(self, issuedBy, data):
+        """.join - joins the queue"""
+        if issuedBy not in self.Q:
+            self.Q.append(issuedBy)
+            self.say("{} was added to the queue".format(issuedBy))
+        else:
+            self.reply("You are already in the queue")
 
-    def cmd_hello(self, issuedBy, data):
-        """.hello - greets you"""
-        self.reply("Hello, {}!".format(issuedBy))
+        if len(self.Q) == self.pugSize:
+            self.say("Ding ding ding, the PUG is starting!")
+
+    def cmd_leave(self, issuedBy, data):
+        """.leave - leaves the queue"""
+        if issuedBy in self.Q:
+            self.Q.remove(issuedBy)
+            self.say("{} was removed from the queue".format(issuedBy))
+        else:
+            self.reply("You are not in the queue")
+
+    def cmd_status(self, issuedBy, data):
+        """.status - displays the queue status"""
+        if len(self.Q) == 0:
+            self.reply("Queue is empty: 0/{}".format(self.pugSize))
+            return
+
+        self.reply("Queue status: {}/{}".format(len(self.Q), self.pugSize))
+        queue = ""
+        Qlen = len(self.Q)
+        for i, p in enumerate(self.Q):
+            if i < Qlen - 1:
+                queue += p + ", "
+            else:
+                queue += p
+        self.reply(queue)
+                
 
 if __name__ == "__main__":
     try:
