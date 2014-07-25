@@ -81,7 +81,7 @@ class Pugbot(irc.bot.SingleServerIRCBot):
     def cmd_plzdie(self, issuedBy, data):
         """.plzdie - kills the bot"""
         if (data == self.password):
-            self.die("{} doesn't like me :<".format(issuedBy))
+            self.die("{0} doesn't like me :<".format(issuedBy))
         else:
             self.reply("You can't run that command without a password")
     
@@ -89,7 +89,7 @@ class Pugbot(irc.bot.SingleServerIRCBot):
         """.join - joins the queue"""
         if issuedBy not in self.Q:
             self.Q.append(issuedBy)
-            self.say("{} was added to the queue".format(issuedBy))
+            self.say("{0} was added to the queue".format(issuedBy))
         else:
             self.reply("You are already in the queue")
 
@@ -100,17 +100,17 @@ class Pugbot(irc.bot.SingleServerIRCBot):
         """.leave - leaves the queue"""
         if issuedBy in self.Q:
             self.Q.remove(issuedBy)
-            self.say("{} was removed from the queue".format(issuedBy))
+            self.say("{0} was removed from the queue".format(issuedBy))
         else:
             self.reply("You are not in the queue")
 
     def cmd_status(self, issuedBy, data):
         """.status - displays the queue status"""
         if len(self.Q) == 0:
-            self.reply("Queue is empty: 0/{}".format(self.pugSize))
+            self.reply("Queue is empty: 0/{0}".format(self.pugSize))
             return
 
-        self.reply("Queue status: {}/{}".format(len(self.Q), self.pugSize))
+        self.reply("Queue status: {0}/{1}".format(len(self.Q), self.pugSize))
         queue = ""
         Qlen = len(self.Q)
         for i, p in enumerate(self.Q):
