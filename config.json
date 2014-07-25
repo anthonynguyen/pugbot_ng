@@ -3,5 +3,6 @@
 "port": 6667,
 "prefixes": "!>@.",
 "channel": "#nuubs",
-"nick": "pugbot-ng"
+"nick": "pugbot-ng",
+"owner": ""
 }

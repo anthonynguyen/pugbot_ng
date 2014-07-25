@@ -2,13 +2,17 @@
 
 import irc.bot
 import json
+import random
 
 class Pugbot(irc.bot.SingleServerIRCBot):
-    def __init__(self, server, port, prefixes, channel, nick):
-        super(Pugbot, self).__init__([(server, port)], nick, nick)
-        self.channel = channel
+    def __init__(self, config):
+        super(Pugbot, self).__init__([(config["server"], config["port"])], config["nick"], config["nick"])
+        self.channel = config["channel"]
         self.target = self.channel
-        self.cmdPrefixes = prefixes
+        self.cmdPrefixes = config["prefixes"]
+        self.owner = config["owner"]
+        self.password = ""
+
 
     def say(self, msg):
         self.connection.privmsg(self.channel, msg)
@@ -21,6 +25,16 @@ class Pugbot(irc.bot.SingleServerIRCBot):
 
     def on_welcome(self, conn, e):
         conn.join(self.channel)
+
+        alpha = "abcdefghijklmopqrstuvwxyz"
+        password = ""
+        for _ in range(5):
+            password += random.choice(alpha)
+        self.password = password
+
+        print("The password is: " + password)
+        if self.owner != "":
+            self.pm(self.owner, "The password is: " + password)
 
     def on_privmsg(self, conn, e):
         self.executeCommand(conn, e, True)
@@ -63,7 +77,10 @@ class Pugbot(irc.bot.SingleServerIRCBot):
     
     def cmd_plzdie(self, issuedBy, data):
         """.plzdie - kills the bot"""
-        self.die("{} doesn't like me :<".format(issuedBy))
+        if (data == self.password):
+            self.die("{} doesn't like me :<".format(issuedBy))
+        else:
+            self.reply("You can't run that command without a password")
 
     def cmd_hello(self, issuedBy, data):
         """.hello - greets you"""
@@ -79,8 +96,9 @@ if __name__ == "__main__":
             "port": 6667,
             "prefixes": "!@>.",
             "channel": "#nuubs",
-            "nick": "pugbot-ng"
+            "nick": "pugbot-ng",
+            "owner": ""
         }
 
-    bot = Pugbot(config["server"], config["port"], config["prefixes"], config["channel"], config["nick"])
+    bot = Pugbot(config)
     bot.start()
