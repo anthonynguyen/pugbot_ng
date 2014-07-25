@@ -70,7 +70,7 @@ class Pugbot(irc.bot.SingleServerIRCBot):
                     self.reply(getattr(self, attr).__doc__)
         else:
             try:
-                command = getattr(self, data)
+                command = getattr(self, "cmd_" + data.lower())
                 self.reply(command.__doc__)
             except AttributeError:
                 self.reply("Command not found: " + data)
