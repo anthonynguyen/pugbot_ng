@@ -33,7 +33,7 @@ class Pugbot(irc.bot.SingleServerIRCBot):
         issuedBy = e.source.nick
         text = e.arguments[0][1:].split(" ")
         command = text[0].lower()
-        data = text[1:]
+        data = " ".join(text[1:])
 
         if private:
             self.target = issuedBy
@@ -46,11 +46,27 @@ class Pugbot(irc.bot.SingleServerIRCBot):
         except AttributeError:
             self.reply("Command not found: " + command)
 
+    def cmd_help(self, issuedBy, data):
+        """.help [command] - displays this message"""
+        if data == "":
+            attrs = sorted(dir(self))
+            self.reply("Commands:")
+            for attr in attrs:
+                if attr[:4] == "cmd_":
+                    self.reply(getattr(self, attr).__doc__)
+        else:
+            try:
+                command = getattr(self, data)
+                self.reply(command.__doc__)
+            except AttributeError:
+                self.reply("Command not found: " + data)
     
     def cmd_plzdie(self, issuedBy, data):
+        """.plzdie - kills the bot"""
         self.die("{} doesn't like me :<".format(issuedBy))
 
     def cmd_hello(self, issuedBy, data):
+        """.hello - greets you"""
         self.reply("Hello, {}!".format(issuedBy))
 
 if __name__ == "__main__":
