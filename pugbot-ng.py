@@ -1,12 +1,14 @@
 #!/usr/bin/env python
+
 import irc.bot
+import json
 
 class Pugbot(irc.bot.SingleServerIRCBot):
-    cmdPrefixes = "!>.@"
-    def __init__(self, server, port, channel, nick):
+    def __init__(self, server, port, prefixes, channel, nick):
         super(Pugbot, self).__init__([(server, port)], nick, nick)
         self.channel = channel
         self.target = self.channel
+        self.cmdPrefixes = prefixes
 
     def say(self, msg):
         self.connection.privmsg(self.channel, msg)
@@ -52,5 +54,17 @@ class Pugbot(irc.bot.SingleServerIRCBot):
         self.reply("Hello, {}!".format(issuedBy))
 
 if __name__ == "__main__":
-    bot = Pugbot("irc.quakenet.org", 6667, "#nuubs", "pugbot-ng")
+    try:
+        configFile = open("config.json", "r")
+        config = json.loads(configFile.read())
+    except IOError:
+        config = {
+            "server": "irc.quakenet.org",
+            "port": 6667,
+            "prefixes": "!@>.",
+            "channel": "#nuubs",
+            "nick": "pugbot-ng"
+        }
+
+    bot = Pugbot(config["server"], config["port"], config["prefixes"], config["channel"], config["nick"])
     bot.start()
