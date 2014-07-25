@@ -95,7 +95,9 @@ class Pugbot(irc.bot.SingleServerIRCBot):
             self.reply("You are already in the queue")
 
         if len(self.Q) == self.pugSize:
-            self.say("Ding ding ding, the PUG is starting!")
+            self.say("\x034,2Ding ding ding, the PUG is starting!")
+            self.Q = []
+            self.votes = {}
 
     def cmd_leave(self, issuedBy, data):
         """.leave - leaves the queue"""
