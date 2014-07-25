@@ -1,7 +1,5 @@
-argparse==1.2.1
 irc==8.9.1
 jaraco.timing==1.0
 jaraco.util==10.2
 more-itertools==2.2
 six==1.7.3
-wsgiref==0.1.2
