@@ -17,6 +17,9 @@ class Pugbot(irc.bot.SingleServerIRCBot):
 		self.Q = []
 		self.maps = ["abbey", "algiers", "austria", "bohemia", "casa", "docks", "dressingroom", "eagle", "elgin", "kingdom", "kingdom_rc6", "mandolin", "prague", "riyadh", "sanc", "snoppis", "subway", "swim", "thingley", "tunis", "turnpike", "uptown"]
 		self.votes = {}
+
+		# Adds a Latin-1 fallback when UTF-8 decoding doesn't work
+		irc.client.ServerConnection.buffer_class = irc.buffer.LenientDecodingLineBuffer
 	
 	def on_ping(self, conn, ev):
 		self.connection.pong(ev.target)
