@@ -24,7 +24,11 @@ class Pugbot(irc.bot.SingleServerIRCBot):
 
         # Adds a Latin-1 fallback when UTF-8 decoding doesn't work
         irc.client.ServerConnection.buffer_class = irc.buffer.LenientDecodingLineBuffer
-    
+   
+    #------------------------------------------#
+    #            IRC-Related Stuff             #
+    #------------------------------------------#
+
     def on_ping(self, conn, ev):
         self.connection.pong(ev.target)
 
@@ -75,6 +79,37 @@ class Pugbot(irc.bot.SingleServerIRCBot):
         except AttributeError:
             self.reply("Command not found: " + command)
 
+    #------------------------------------------#
+    #               Other Stuff                #
+    #------------------------------------------#
+
+    def startGame(self):
+        mapVotes = self.votes.values()
+
+        if not mapVotes:
+            mapVotes = self.maps
+
+        print(mapVotes)
+
+        maxVotes = max([mapVotes.count(mapname) for mapname in mapVotes])
+        print(maxVotes)
+        mapPool = [mapname for mapname in mapVotes if mapVotes.count(mapname) == maxVotes]
+        print(mapPool)
+
+        chosenMap = mapPool[random.randint(0, len(mapPool) - 1)]
+
+        self.say("\x030,2Ding ding ding! The PUG is starting! The map is " + chosenMap)
+        self.say("\x037Players: " + ", ".join(self.Q))
+
+        self.Q = []
+        self.votes = {}
+
+
+    #------------------------------------------#
+    #                Commands                  #
+    #------------------------------------------#
+
+
     def cmd_help(self, issuedBy, data):
         """.help [command] - displays this message"""
         if data == "":
@@ -90,10 +125,6 @@ class Pugbot(irc.bot.SingleServerIRCBot):
             except AttributeError:
                 self.reply("Command not found: " + data)
     
-    def pw_cmd_plzdie(self, issuedBy, data):
-        """.plzdie - kills the bot"""
-        self.die("{0} doesn't like me :<".format(issuedBy))
-    
     def cmd_join(self, issuedBy, data):
         """.join - joins the queue"""
         if issuedBy not in self.Q:
@@ -103,9 +134,7 @@ class Pugbot(irc.bot.SingleServerIRCBot):
             self.reply("You are already in the queue")
 
         if len(self.Q) == self.pugSize:
-            self.say("\x034,2Ding ding ding, the PUG is starting!")
-            self.Q = []
-            self.votes = {}
+            self.startGame()
 
     def cmd_leave(self, issuedBy, data):
         """.leave - leaves the queue"""
@@ -151,6 +180,12 @@ class Pugbot(irc.bot.SingleServerIRCBot):
                 self.reply("{0}: {1} vote{2}".format(map, tallies[map], "" if tallies[map] == 1 else "s"))
         else:
             self.reply("There are no current votes")
+
+
+    def pw_cmd_plzdie(self, issuedBy, data):
+        """.plzdie - kills the bot"""
+        self.die("{0} doesn't like me :<".format(issuedBy))
+    
 
 def main():
     try:
