@@ -4,13 +4,17 @@ import irc.bot
 import json
 import random
 
+
 def genRandomString(length):
     alpha = "abcdefghijklmnopqrstuvwxyz"
     return "".join(random.choice(alpha) for _ in range(length))
 
+
 class Pugbot(irc.bot.SingleServerIRCBot):
     def __init__(self, config):
-        super(Pugbot, self).__init__([(config["server"], config["port"])], config["nick"], config["nick"])
+        super(Pugbot, self).__init__(
+            [(config["server"], config["port"])],
+            config["nick"], config["nick"])
         self.channel = config["channel"]
         self.target = self.channel
         self.cmdPrefixes = config["prefixes"]
@@ -20,19 +24,22 @@ class Pugbot(irc.bot.SingleServerIRCBot):
 
         self.Q = []
         self.maps = ["abbey", "algiers", "austria", "beijing_b3",
-        "bohemia", "cambridge_fixed", "casa", "crossing", "docks",
-        "dust2_v2", "elgin", "facade_b5", "kingdom_rc6", "mandolin", 
-        "oildepot", "orbital_sl", "prague", "ramelle", "ricochet", 
-        "riyadh", "sanctuary", "thingley", "tohunga_b8", "tohunga_b10",
-        "toxic", "tunis", "turnpike", "uptown"]
+                     "bohemia", "cambridge_fixed", "casa", "crossing", "docks",
+                     "dust2_v2", "elgin", "facade_b5", "kingdom_rc6",
+                     "mandolin", "oildepot", "orbital_sl", "prague", "ramelle",
+                     "ricochet", "riyadh", "sanctuary", "thingley",
+                     "tohunga_b8", "tohunga_b10", "toxic", "tunis", "turnpike",
+                     "uptown"]
         self.votes = {}
 
         # Adds a Latin-1 fallback when UTF-8 decoding doesn't work
         irc.client.ServerConnection.buffer_class = irc.buffer.LenientDecodingLineBuffer
-   
+
+    """
     #------------------------------------------#
     #            IRC-Related Stuff             #
     #------------------------------------------#
+    """
 
     def notice(self, nick, msg):
         self.connection.notice(nick, msg)
@@ -48,7 +55,7 @@ class Pugbot(irc.bot.SingleServerIRCBot):
 
     def pm(self, nick, msg):
         self.connection.privmsg(nick, msg)
-    
+
     def reply(self, msg):
         self.connection.privmsg(self.target, msg)
 
@@ -68,7 +75,7 @@ class Pugbot(irc.bot.SingleServerIRCBot):
         if (e.arguments[0][0] in self.cmdPrefixes):
             self.executeCommand(conn, e)
 
-    def executeCommand(self, conn, e, private = False):
+    def executeCommand(self, conn, e, private=False):
         issuedBy = e.source.nick
         text = e.arguments[0][1:].split(" ")
         command = text[0].lower()
@@ -90,9 +97,11 @@ class Pugbot(irc.bot.SingleServerIRCBot):
         except AttributeError:
             self.notice(issuedBy, "Command not found: " + command)
 
+    """
     #------------------------------------------#
     #               Other Stuff                #
     #------------------------------------------#
+    """
 
     def _on_nick(self, conn, ev):
         old = ev.source.nick
@@ -131,14 +140,17 @@ class Pugbot(irc.bot.SingleServerIRCBot):
             mapVotes = self.maps
 
         maxVotes = max([mapVotes.count(mapname) for mapname in mapVotes])
-        mapPool = [mapname for mapname in mapVotes if mapVotes.count(mapname) == maxVotes]
+        mapPool = [mapname for mapname in mapVotes
+                   if mapVotes.count(mapname) == maxVotes]
 
         chosenMap = mapPool[random.randint(0, len(mapPool) - 1)]
 
         captains = random.sample(self.Q, 2)
 
-        self.say("\x030,2Ding ding ding! The PUG is starting! The map is " + chosenMap)
-        self.say("\x030,2The captains are {0} and {1}!".format(captains[0], captains[1]))
+        self.say("\x030,2Ding ding ding! The PUG is starting! The map is "
+                 + chosenMap)
+        self.say("\x030,2The captains are {0} and {1}!".format(
+            captains[0], captains[1]))
         self.say("\x037Players: " + ", ".join(self.Q))
 
         self.Q = []
@@ -155,21 +167,23 @@ class Pugbot(irc.bot.SingleServerIRCBot):
                 matches.append(m)
         return matches
 
-    def voteHelper(self, player, string): 
+    def voteHelper(self, player, string):
         mapMatches = self.resolveMap(string)
         if not mapMatches:
             self.notice(player, "{0} is not a valid map".format(string))
         elif len(mapMatches) > 1:
-            self.notice(player, "There are multiple matches for '{0}': ".format(string) + 
-                       ", ".join(mapMatches))
+            self.notice(player,
+                        "There are multiple matches for '{0}': ".format(string)
+                        + ", ".join(mapMatches))
         else:
             self.votes[player] = mapMatches[0]
             self.say("{0} voted for {1}".format(player, mapMatches[0]))
 
+    """
     #------------------------------------------#
     #                Commands                  #
     #------------------------------------------#
-
+    """
 
     def cmd_help(self, issuedBy, data):
         """.help [command] - displays this message"""
@@ -185,7 +199,7 @@ class Pugbot(irc.bot.SingleServerIRCBot):
                 self.notice(issuedBy, command.__doc__)
             except AttributeError:
                 self.notice(issuedBy, "Command not found: " + data)
-    
+
     def cmd_join(self, issuedBy, data):
         """.join - joins the queue"""
         if issuedBy not in self.Q:
@@ -213,7 +227,8 @@ class Pugbot(irc.bot.SingleServerIRCBot):
             self.notice(issuedBy, "Queue is empty: 0/{0}".format(self.pugSize))
             return
 
-        self.notice(issuedBy, "Queue status: {0}/{1}".format(len(self.Q), self.pugSize))
+        self.notice(issuedBy,
+                    "Queue status: {0}/{1}".format(len(self.Q), self.pugSize))
         self.notice(issuedBy, ", ".join(self.Q))
 
     def cmd_maps(self, issuedBy, data):
@@ -235,27 +250,29 @@ class Pugbot(irc.bot.SingleServerIRCBot):
 
         if self.votes:
             for map in tallies:
-                self.notice(issuedBy, "{0}: {1} vote{2}".format(map, tallies[map], "" if tallies[map] == 1 else "s"))
+                self.notice(issuedBy, "{0}: {1} vote{2}".format(
+                    map, tallies[map], "" if tallies[map] == 1 else "s"))
         else:
             self.notice(issuedBy, "There are no current votes")
-
 
     def pw_cmd_plzdie(self, issuedBy, data):
         """.plzdie - kills the bot"""
         self.die("{0} doesn't like me :<".format(issuedBy))
 
     def pw_cmd_forcestart(self, issuedBy, data):
-        """.forcestart - starts the game regardless of whether there are enough players or not"""
+        """.forcestart - starts the game regardless of whether there are enough
+        players or not"""
         self.say("{0} is forcing the game to start!".format(issuedBy))
         self.startGame()
-    
+
 
 def main():
     try:
         configFile = open("config.json", "r")
         config = json.loads(configFile.read())
     except:
-        print("Invalid or missing config file. Check if config.json exists and follows the correct format")
+        print("Invalid or missing config file. Check if "
+              + "config.json exists and follows the correct format")
         return
 
     bot = Pugbot(config)
