@@ -19,7 +19,12 @@ class Pugbot(irc.bot.SingleServerIRCBot):
         self.pugSize = config["size"]
 
         self.Q = []
-        self.maps = ["ut4_abbey", "ut4_algiers", "ut4_austria", "ut4_beijing_b3", "ut4_bohemia", "ut4_cambridge_fixed", "ut4_casa", "ut4_crossing", "ut4_docks", "ut4_dust2_v2", "ut4_elgin", "ut4_facade_b5", "ut4_kingdom_rc6", "ut4_mandolin", "ut4_oildepot", "ut4_orbital_sl", "ut4_prague", "ut4_ramelle", "ut4_ricochet", "ut4_riyadh", "ut4_sanctuary", "ut4_thingley", "ut4_tohunga_b8", "ut4_tohunga_b10", "ut4_toxic", "ut4_tunis", "ut4_turnpike", "ut4_uptown"]
+        self.maps = ["abbey", "algiers", "austria", "beijing_b3",
+        "bohemia", "cambridge_fixed", "casa", "crossing", "docks",
+        "dust2_v2", "elgin", "facade_b5", "kingdom_rc6", "mandolin", 
+        "oildepot", "orbital_sl", "prague", "ramelle", "ricochet", 
+        "riyadh", "sanctuary", "thingley", "tohunga_b8", "tohunga_b10",
+        "toxic", "tunis", "turnpike", "uptown"]
         self.votes = {}
 
         # Adds a Latin-1 fallback when UTF-8 decoding doesn't work
