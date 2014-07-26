@@ -29,6 +29,9 @@ class Pugbot(irc.bot.SingleServerIRCBot):
     #            IRC-Related Stuff             #
     #------------------------------------------#
 
+    def on_nicknameinuse(self, conn, ev):
+        conn.nick(conn.get_nickname() + "_")
+
     def on_ping(self, conn, ev):
         self.connection.pong(ev.target)
 
