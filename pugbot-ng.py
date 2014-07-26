@@ -33,13 +33,9 @@ class Pugbot(irc.bot.SingleServerIRCBot):
 	def on_welcome(self, conn, e):
 		conn.join(self.channel)
 
-		alpha = "abcdefghijklmopqrstuvwxyz"
-		password = ""
-		for _ in range(5):
-			password += random.choice(alpha)
-		self.password = password
+		self.password = ''.join(random.choice("abcdefghijklmopqrstuvwxyz") for _ in range(5))
 
-		print("The password is: " + password)
+		print("The password is: " + self.password)
 		if self.owner != "":
 			self.pm(self.owner, "The password is: " + password)
 
