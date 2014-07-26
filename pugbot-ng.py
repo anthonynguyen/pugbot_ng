@@ -34,6 +34,9 @@ class Pugbot(irc.bot.SingleServerIRCBot):
     #            IRC-Related Stuff             #
     #------------------------------------------#
 
+    def notice(self, nick, msg):
+        self.connection.notice(nick, msg)
+
     def on_nicknameinuse(self, conn, ev):
         conn.nick(conn.get_nickname() + "_")
 
@@ -85,7 +88,7 @@ class Pugbot(irc.bot.SingleServerIRCBot):
             commandFunc = getattr(self, pref + command)
             commandFunc(issuedBy, data)
         except AttributeError:
-            self.reply("Command not found: " + command)
+            self.notice(issuedBy, "Command not found: " + command)
 
     #------------------------------------------#
     #               Other Stuff                #
@@ -155,9 +158,9 @@ class Pugbot(irc.bot.SingleServerIRCBot):
     def voteHelper(self, player, string): 
         mapMatches = self.resolveMap(string)
         if not mapMatches:
-            self.reply("{0} is not a valid map".format(string))
+            self.notice(player, "{0} is not a valid map".format(string))
         elif len(mapMatches) > 1:
-            self.reply("There are multiple matches for '{0}': ".format(string) + 
+            self.notice(player, "There are multiple matches for '{0}': ".format(string) + 
                        ", ".join(mapMatches))
         else:
             self.votes[player] = mapMatches[0]
@@ -172,16 +175,16 @@ class Pugbot(irc.bot.SingleServerIRCBot):
         """.help [command] - displays this message"""
         if data == "":
             attrs = sorted(dir(self))
-            self.reply("Commands:")
+            self.notice(issuedBy, "Commands:")
             for attr in attrs:
                 if attr[:4] == "cmd_":
-                    self.reply(getattr(self, attr).__doc__)
+                    self.notice(issuedBy, getattr(self, attr).__doc__)
         else:
             try:
                 command = getattr(self, "cmd_" + data.lower())
-                self.reply(command.__doc__)
+                self.notice(issuedBy, command.__doc__)
             except AttributeError:
-                self.reply("Command not found: " + data)
+                self.notice(issuedBy, "Command not found: " + data)
     
     def cmd_join(self, issuedBy, data):
         """.join - joins the queue"""
@@ -189,7 +192,7 @@ class Pugbot(irc.bot.SingleServerIRCBot):
             self.Q.append(issuedBy)
             self.say("{0} was added to the queue".format(issuedBy))
         else:
-            self.reply("You are already in the queue")
+            self.notice(issuedBy, "You are already in the queue")
 
         self.voteHelper(issuedBy, data)
 
@@ -203,24 +206,24 @@ class Pugbot(irc.bot.SingleServerIRCBot):
             self.votes.pop(issuedBy, None)
             self.say("{0} was removed from the queue".format(issuedBy))
         else:
-            self.reply("You are not in the queue")
+            self.notice(issuedBy, "You are not in the queue")
 
     def cmd_status(self, issuedBy, data):
         if len(self.Q) == 0:
-            self.reply("Queue is empty: 0/{0}".format(self.pugSize))
+            self.notice(issuedBy, "Queue is empty: 0/{0}".format(self.pugSize))
             return
 
-        self.reply("Queue status: {0}/{1}".format(len(self.Q), self.pugSize))
-        self.reply(", ".join(self.Q))
+        self.notice(issuedBy, "Queue status: {0}/{1}".format(len(self.Q), self.pugSize))
+        self.notice(issuedBy, ", ".join(self.Q))
 
     def cmd_maps(self, issuedBy, data):
         """.maps - list maps that are able to be voted"""
-        self.reply("Available maps: " + ", ".join(self.maps))
+        self.notice(issuedBy, "Available maps: " + ", ".join(self.maps))
 
     def cmd_vote(self, issuedBy, data):
         """.vote - vote for a map"""
         if issuedBy not in self.Q:
-            self.reply("You are not in the queue")
+            self.notice(issuedBy, "You are not in the queue")
         else:
             self.voteHelper(issuedBy, data)
 
@@ -232,9 +235,9 @@ class Pugbot(irc.bot.SingleServerIRCBot):
 
         if self.votes:
             for map in tallies:
-                self.reply("{0}: {1} vote{2}".format(map, tallies[map], "" if tallies[map] == 1 else "s"))
+                self.notice(issuedBy, "{0}: {1} vote{2}".format(map, tallies[map], "" if tallies[map] == 1 else "s"))
         else:
-            self.reply("There are no current votes")
+            self.notice(issuedBy, "There are no current votes")
 
 
     def pw_cmd_plzdie(self, issuedBy, data):
