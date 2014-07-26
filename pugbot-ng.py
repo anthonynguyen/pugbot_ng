@@ -140,6 +140,7 @@ class Pugbot(irc.bot.SingleServerIRCBot):
         """.leave - leaves the queue"""
         if issuedBy in self.Q:
             self.Q.remove(issuedBy)
+            self.votes.pop(issuedBy, None)
             self.say("{0} was removed from the queue".format(issuedBy))
         else:
             self.reply("You are not in the queue")
