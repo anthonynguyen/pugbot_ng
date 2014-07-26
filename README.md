@@ -1,12 +1,11 @@
 pugbot-ng = pugbot next gen
 
-
-commands:
-+.help
-+.plzdie
-+.join
-+.leave
-+.status
-+.maps
-+.vote
-+.votes
+commands: <br>
+`help` <br>
+`plzdie` <br>
+`join` <br>
+`leave` <br>
+`status` <br>
+`maps` <br>
+`vote mapname` <br>
+`votes` <br>
