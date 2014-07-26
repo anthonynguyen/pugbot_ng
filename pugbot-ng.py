@@ -2,7 +2,19 @@
 
 import irc.bot
 import json
+import logging
 import random
+
+
+__CONFIG = {
+    "server": "irc.quakenet.org",
+    "port": 6667,
+    "prefixes": "!>@.",
+    "channel": "#pugbot-ng",
+    "nick": "pugbot-ng",
+    "owner": "",
+    "size": 10
+}
 
 
 def genRandomString(length):
@@ -263,10 +275,13 @@ def main():
     try:
         configFile = open("config.json", "r")
         config = json.loads(configFile.read())
-    except:
-        print("Invalid or missing config file. Check if "
-              + "config.json exists and follows the correct format")
-        return
+        configFile.close()
+    except FileNotFoundError:
+        logging.warning("Missing config file. Autogenerating default "
+                        + "configuration.")
+        config = json.loads(__CONFIG)
+        with open("config.json", "w") as configFile:
+            configFile.write(json.dumps(config, sort_keys=True, indent=4))
 
     bot = Pugbot(config)
     bot.start()
