@@ -83,6 +83,18 @@ class Pugbot(irc.bot.SingleServerIRCBot):
     #               Other Stuff                #
     #------------------------------------------#
 
+    def _on_nick(self, conn, ev):
+        old = ev.source.nick
+        new = ev.target
+
+        if old in self.Q:
+            self.Q.remove(old)
+            self.Q.append(new)
+
+        if old in self.votes:
+            self.votes[new] = self.votes[old]
+            self.votes.pop(old)
+
     def startGame(self):
         mapVotes = self.votes.values()
 
