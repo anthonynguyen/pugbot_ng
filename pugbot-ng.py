@@ -6,7 +6,7 @@ import random
 
 def genRandomString(length):
     alpha = "abcdefghijklmnopqrstuvwxyz"
-	return "".join(random.choice(alpha) for _ in range(length))
+    return "".join(random.choice(alpha) for _ in range(length))
 
 class Pugbot(irc.bot.SingleServerIRCBot):
     def __init__(self, config):
@@ -114,20 +114,13 @@ class Pugbot(irc.bot.SingleServerIRCBot):
             self.reply("You are not in the queue")
 
     def cmd_status(self, issuedBy, data):
-        t di""".status - displays the queue status"""
+        """.status - displays the queue status"""
         if len(self.Q) == 0:
             self.reply("Queue is empty: 0/{0}".format(self.pugSize))
             return
 
         self.reply("Queue status: {0}/{1}".format(len(self.Q), self.pugSize))
-        queue = ""
-        Qlen = len(self.Q)
-        for i, p in enumerate(self.Q):
-            if i < Qlen - 1:
-                queue += p + ", "
-            else:
-                queue += p
-        self.reply(queue)
+        self.reply(", ".join(self.Q))
 
     def cmd_maps(self, issuedBy, data):
         """.maps - list maps that are able to be voted"""
