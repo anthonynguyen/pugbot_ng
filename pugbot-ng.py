@@ -19,7 +19,7 @@ class Pugbot(irc.bot.SingleServerIRCBot):
         self.pugSize = config["size"]
 
         self.Q = []
-        self.maps = ["abbey", "algiers", "austria", "bohemia", "casa", "docks", "dressingroom", "eagle", "elgin", "kingdom", "kingdom_rc6", "mandolin", "prague", "riyadh", "sanc", "snoppis", "subway", "swim", "thingley", "tunis", "turnpike", "uptown"]
+        self.maps = ["ut4_abbey", "ut4_algiers", "ut4_austria", "ut4_beijing_b3", "ut4_bohemia", "ut4_cambridge_fixed", "ut4_casa", "ut4_crossing", "ut4_docks", "ut4_dust2_v2", "ut4_elgin", "ut4_facade_b5", "ut4_kingdom_rc6", "ut4_mandolin", "ut4_oildepot", "ut4_orbital_sl", "ut4_prague", "ut4_ramelle", "ut4_ricochet", "ut4_riyadh", "ut4_sanctuary", "ut4_thingley", "ut4_tohunga_b8", "ut4_tohunga_b10", "ut4_toxic", "ut4_tunis", "ut4_turnpike", "ut4_uptown"]
         self.votes = {}
 
         # Adds a Latin-1 fallback when UTF-8 decoding doesn't work
@@ -136,6 +136,27 @@ class Pugbot(irc.bot.SingleServerIRCBot):
         self.Q = []
         self.votes = {}
 
+    def resolveMap(self, string):
+        matches = []
+
+        if not string:
+            return matches
+
+        for m in self.maps:
+            if string in m:
+                matches.append(m)
+        return matches
+
+    def voteHelper(self, player, string): 
+        mapMatches = self.resolveMap(string)
+        if not mapMatches:
+            self.reply("{0} is not a valid map".format(string))
+        elif len(mapMatches) > 1:
+            self.reply("There are multiple matches for '{0}': ".format(string) + 
+                       ", ".join(mapMatches))
+        else:
+            self.votes[player] = mapMatches[0]
+            self.say("{0} voted for {1}".format(player, mapMatches[0]))
 
     #------------------------------------------#
     #                Commands                  #
@@ -165,10 +186,7 @@ class Pugbot(irc.bot.SingleServerIRCBot):
         else:
             self.reply("You are already in the queue")
 
-        if data in self.maps:
-            self.votes[issuedBy] = data
-        elif data:
-            self.reply("{0} is not a valid map".format(data))
+        self.voteHelper(issuedBy, data)
 
         if len(self.Q) == self.pugSize:
             self.startGame()
@@ -183,7 +201,6 @@ class Pugbot(irc.bot.SingleServerIRCBot):
             self.reply("You are not in the queue")
 
     def cmd_status(self, issuedBy, data):
-        """.status - displays the queue status"""
         if len(self.Q) == 0:
             self.reply("Queue is empty: 0/{0}".format(self.pugSize))
             return
@@ -193,18 +210,14 @@ class Pugbot(irc.bot.SingleServerIRCBot):
 
     def cmd_maps(self, issuedBy, data):
         """.maps - list maps that are able to be voted"""
-        self.say("Maps: abbey, algiers, austria, bohemia, casa, docks, dressingroom, eagle, elgin, kingdom, kingdom_rc6, mandolin, prague, riyadh, sanc, snoppis, subway, swim, thingley, tunis, turnpike, uptown")
+        self.reply("Available maps: " + ", ".join(self.maps))
 
     def cmd_vote(self, issuedBy, data):
         """.vote - vote for a map"""
         if issuedBy not in self.Q:
             self.reply("You are not in the queue")
         else:
-            if data not in self.maps:
-                self.reply("{0} is not a valid map".format(data))
-            else: 
-                self.votes[issuedBy] = data
-                self.say("{0} voted for {1}".format(issuedBy, data))
+            self.voteHelper(issuedBy, data)
 
     def cmd_votes(self, issuedBy, data):
         """.votes - show number of votes per map"""
