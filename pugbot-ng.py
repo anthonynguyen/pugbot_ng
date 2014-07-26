@@ -223,6 +223,7 @@ class Pugbot(irc.bot.SingleServerIRCBot):
             self.notice(issuedBy, "You are not in the queue")
 
     def cmd_status(self, issuedBy, data):
+        """.status - displays the status of the current queue"""
         if len(self.Q) == 0:
             self.notice(issuedBy, "Queue is empty: 0/{0}".format(self.pugSize))
             return
