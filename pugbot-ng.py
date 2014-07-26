@@ -110,6 +110,10 @@ class Pugbot(irc.bot.SingleServerIRCBot):
         self.removeUser(ev.source.nick)
 
     def startGame(self):
+        if len(self.Q) < 2:
+            self.say("A game cannot be started with fewer than 2 players.")
+            return
+
         mapVotes = self.votes.values()
 
         if not mapVotes:
@@ -223,6 +227,11 @@ class Pugbot(irc.bot.SingleServerIRCBot):
     def pw_cmd_plzdie(self, issuedBy, data):
         """.plzdie - kills the bot"""
         self.die("{0} doesn't like me :<".format(issuedBy))
+
+    def pw_cmd_forcestart(self, issuedBy, data):
+        """.forcestart - starts the game regardless of whether there are enough players or not"""
+        self.say("{0} is forcing the game to start!".format(issuedBy))
+        self.startGame()
     
 
 def main():
