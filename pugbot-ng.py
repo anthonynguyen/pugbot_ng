@@ -279,9 +279,9 @@ def main():
     except FileNotFoundError:
         logging.warning("Missing config file. Autogenerating default "
                         + "configuration.")
-        config = json.loads(__CONFIG)
+        config = __CONFIG
         with open("config.json", "w") as configFile:
-            configFile.write(json.dumps(config, sort_keys=True, indent=4))
+            configFile.write(json.dumps(__CONFIG, sort_keys=True, indent=4))
 
     bot = Pugbot(config)
     bot.start()
