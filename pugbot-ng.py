@@ -164,7 +164,6 @@ class Pugbot(irc.bot.SingleServerIRCBot):
             self.say("{0} was added to the queue".format(issuedBy))
         else:
             self.reply("You are already in the queue")
-            return
 
         if data in self.maps:
             self.votes[issuedBy] = data
