@@ -3,7 +3,7 @@ pugbot-ng = pugbot next gen
 commands:
 * `help`
 * `plzdie`
-* `join`
+* `join` or `join mapname`
 * `leave`
 * `status`
 * `maps`

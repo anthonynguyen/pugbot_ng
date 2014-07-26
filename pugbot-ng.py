@@ -126,11 +126,23 @@ class Pugbot(irc.bot.SingleServerIRCBot):
     
     def cmd_join(self, issuedBy, data):
         """.join - joins the queue"""
-        if issuedBy not in self.Q:
-            self.Q.append(issuedBy)
-            self.say("{0} was added to the queue".format(issuedBy))
-        else:
-            self.reply("You are already in the queue")
+        
+        if data != "":
+            if data in self.maps:
+                if issuedBy not in self.Q:
+                    self.Q.append(issuedBy)
+                    self.votes[issuedBy] = data
+                    self.say("{0} was added to the queue".format(issuedBy))
+                else:
+                    self.reply("You are already in the queue")
+            else:
+                self.reply("{0} is not a valid map".format(data))
+        elif data == "":
+            if issuedBy not in self.Q:
+                self.Q.append(issuedBy)
+                self.say("{0} was added to the queue".format(issuedBy))
+            else:
+                self.reply("You are already in the queue")
 
         if len(self.Q) == self.pugSize:
             self.startGame()
