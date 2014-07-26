@@ -43,7 +43,7 @@ class Pugbot(irc.bot.SingleServerIRCBot):
             random.choice("abcdefghijklmopqrstuvwxyz") for _ in range(5))
 
         print("The password is: " + self.password)
-        if self.owner != "":
+        if self.owner:
             self.pm(self.owner, "The password is: " + self.password)
 
     def on_privmsg(self, conn, e):
@@ -151,12 +151,12 @@ class Pugbot(irc.bot.SingleServerIRCBot):
         mapvotes = self.votes.values()
         tallies = dict((map, mapvotes.count(map)) for map in mapvotes)
 
-        if len(self.votes) == 0:
-            self.reply("There are no current votes")
-        else:
+        if self.votes:
             for map in tallies:
                 self.reply("{0}: {1} vote{2}".format(
                     map, tallies[map], "" if tallies[map] == 1 else "s"))
+        else:
+            self.reply("There are no current votes")
 
 if __name__ == "__main__":
     try:
