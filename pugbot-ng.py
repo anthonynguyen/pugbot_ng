@@ -160,19 +160,16 @@ class Pugbot(irc.bot.SingleServerIRCBot):
 			for map in tallies:
 				self.reply("{0}: {1} vote{2}".format(map, tallies[map], "" if tallies[map] == 1 else "s"))
 
-if __name__ == "__main__":
+def main():
 	try:
 		configFile = open("config.json", "r")
 		config = json.loads(configFile.read())
-	except IOError:
-		config = {
-			"server": "irc.quakenet.org",
-			"port": 6667,
-			"prefixes": "!@>.",
-			"channel": "#pugbot-ng",
-			"nick": "pugbot-ng",
-			"owner": ""
-		}
+	except:
+		print("Invalid or missing config file. Check if config.json exists and follows the correct format")
+		return
 
 	bot = Pugbot(config)
 	bot.start()
+
+if __name__ == "__main__":
+	main()
