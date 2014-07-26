@@ -6,10 +6,7 @@ import random
 
 def genRandomString(length):
     alpha = "abcdefghijklmnopqrstuvwxyz"
-    string = ""
-    for _ in range(length):
-        string += random.choice(alpha)
-    return string
+	return "".join(random.choice(alpha) for _ in range(length))
 
 class Pugbot(irc.bot.SingleServerIRCBot):
     def __init__(self, config):
@@ -43,11 +40,11 @@ class Pugbot(irc.bot.SingleServerIRCBot):
     def on_welcome(self, conn, e):
         conn.join(self.channel)
 
-        password = genRandomString(5)
+        self.password = genRandomString(5)
 
-        print("The password is: " + password)
+        print("The password is: " + self.password)
         if self.owner:
-            self.pm(self.owner, "The password is: " + password)
+            self.pm(self.owner, "The password is: " + self.password)
 
     def on_privmsg(self, conn, e):
         self.executeCommand(conn, e, True)
@@ -117,7 +114,7 @@ class Pugbot(irc.bot.SingleServerIRCBot):
             self.reply("You are not in the queue")
 
     def cmd_status(self, issuedBy, data):
-        """.status - displays the queue status"""
+        t di""".status - displays the queue status"""
         if len(self.Q) == 0:
             self.reply("Queue is empty: 0/{0}".format(self.pugSize))
             return
