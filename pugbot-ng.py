@@ -37,7 +37,7 @@ class Pugbot(irc.bot.SingleServerIRCBot):
 
 		print("The password is: " + self.password)
 		if self.owner != "":
-			self.pm(self.owner, "The password is: " + password)
+			self.pm(self.owner, "The password is: " + self.password)
 
 	def on_privmsg(self, conn, e):
 		self.executeCommand(conn, e, True)
