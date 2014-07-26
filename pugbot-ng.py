@@ -95,6 +95,20 @@ class Pugbot(irc.bot.SingleServerIRCBot):
             self.votes[new] = self.votes[old]
             self.votes.pop(old)
 
+    def removeUser(self, user):
+        if user in self.Q:
+            self.Q.remove(user)
+            self.say("{0} was removed from the queue".format(user))
+
+        if user in self.votes:
+            self.votes.pop(user)
+
+    def _on_part(self, conn, ev):
+        self.removeUser(ev.source.nick)
+
+    def _on_quit(self, conn, ev):
+        self.removeUser(ev.source.nick)
+
     def startGame(self):
         mapVotes = self.votes.values()
 
