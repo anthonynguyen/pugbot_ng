@@ -89,16 +89,15 @@ class Pugbot(irc.bot.SingleServerIRCBot):
         if not mapVotes:
             mapVotes = self.maps
 
-        print(mapVotes)
-
         maxVotes = max([mapVotes.count(mapname) for mapname in mapVotes])
-        print(maxVotes)
         mapPool = [mapname for mapname in mapVotes if mapVotes.count(mapname) == maxVotes]
-        print(mapPool)
 
         chosenMap = mapPool[random.randint(0, len(mapPool) - 1)]
 
+        captains = random.sample(self.Q, 2)
+
         self.say("\x030,2Ding ding ding! The PUG is starting! The map is " + chosenMap)
+        self.say("\x030,2The captains are {0} and {1}!".format(captains[0], captains[1]))
         self.say("\x037Players: " + ", ".join(self.Q))
 
         self.Q = []
