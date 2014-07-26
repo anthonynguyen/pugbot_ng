@@ -4,7 +4,6 @@ import irc.bot
 import json
 import random
 
-<<<<<<< HEAD
 def genRandomString(length):
     alpha = "abcdefghijklmnopqrstuvwxyz"
     string = ""
