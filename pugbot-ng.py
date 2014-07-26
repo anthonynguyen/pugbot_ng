@@ -16,7 +16,6 @@ class Pugbot(irc.bot.SingleServerIRCBot):
             [(config["server"], config["port"])],
             config["nick"], config["nick"])
         self.channel = config["channel"]
-        self.target = self.channel
         self.cmdPrefixes = config["prefixes"]
         self.owner = config["owner"]
         self.password = ""
@@ -56,9 +55,6 @@ class Pugbot(irc.bot.SingleServerIRCBot):
     def pm(self, nick, msg):
         self.connection.privmsg(nick, msg)
 
-    def reply(self, msg):
-        self.connection.privmsg(self.target, msg)
-
     def on_welcome(self, conn, e):
         conn.join(self.channel)
 
@@ -69,22 +65,17 @@ class Pugbot(irc.bot.SingleServerIRCBot):
             self.pm(self.owner, "The password is: " + self.password)
 
     def on_privmsg(self, conn, e):
-        self.executeCommand(conn, e, True)
+        self.executeCommand(conn, e)
 
     def on_pubmsg(self, conn, e):
         if (e.arguments[0][0] in self.cmdPrefixes):
             self.executeCommand(conn, e)
 
-    def executeCommand(self, conn, e, private=False):
+    def executeCommand(self, conn, e):
         issuedBy = e.source.nick
         text = e.arguments[0][1:].split(" ")
         command = text[0].lower()
         data = " ".join(text[1:])
-
-        if private:
-            self.target = issuedBy
-        else:
-            self.target = self.channel
 
         if (data[:5] == self.password):
             pref = "pw_cmd_"
