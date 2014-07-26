@@ -64,8 +64,13 @@ class Pugbot(irc.bot.SingleServerIRCBot):
         else:
             self.target = self.channel
 
+        if (data[:5] == self.password):
+            pref = "pw_cmd_"
+        else:
+            pref = "cmd_"
+
         try:
-            commandFunc = getattr(self, "cmd_" + command)
+            commandFunc = getattr(self, pref + command)
             commandFunc(issuedBy, data)
         except AttributeError:
             self.reply("Command not found: " + command)
@@ -85,12 +90,9 @@ class Pugbot(irc.bot.SingleServerIRCBot):
             except AttributeError:
                 self.reply("Command not found: " + data)
     
-    def cmd_plzdie(self, issuedBy, data):
+    def pw_cmd_plzdie(self, issuedBy, data):
         """.plzdie - kills the bot"""
-        if (data == self.password):
-            self.die("{0} doesn't like me :<".format(issuedBy))
-        else:
-            self.reply("You can't run that command without a password")
+        self.die("{0} doesn't like me :<".format(issuedBy))
     
     def cmd_join(self, issuedBy, data):
         """.join - joins the queue"""
