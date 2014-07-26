@@ -65,7 +65,8 @@ class Pugbot(irc.bot.SingleServerIRCBot):
             self.pm(self.owner, "The password is: " + self.password)
 
     def on_privmsg(self, conn, e):
-        self.executeCommand(conn, e)
+        if (e.arguments[0][0] in self.cmdPrefixes):
+            self.executeCommand(conn, e)
 
     def on_pubmsg(self, conn, e):
         if (e.arguments[0][0] in self.cmdPrefixes):
