@@ -129,10 +129,19 @@ class Pugbot(irc.bot.SingleServerIRCBot):
         conn.join(self.channel)
 
         self.password = genRandomString(5)
+        self.lastpass = self.password
 
         print("The password is: " + self.password)
         if self.owner:
             self.pm(self.owner, "The password is: " + self.password)
+
+    def new_password(self):
+
+        if self.lastpass == self.password:
+            self.password = genRandomString(5)
+            self.lastpass = self.password
+            
+        print("The password is: " + self.password)
 
     def on_privmsg(self, conn, e):
         if (e.arguments[0][0] in self.cmdPrefixes):
@@ -331,6 +340,7 @@ class Pugbot(irc.bot.SingleServerIRCBot):
         players or not"""
         self.say("{0} is forcing the game to start!".format(issuedBy))
         self.startGame()
+        self.new_password()
 
 
 def main():
