@@ -3,6 +3,7 @@
 import irc.bot
 import json
 import logging
+import os
 import random
 
 
@@ -20,6 +21,39 @@ __CONFIG = {
 def genRandomString(length):
     alpha = "abcdefghijklmnopqrstuvwxyz"
     return "".join(random.choice(alpha) for _ in range(length))
+
+
+def _load_config():
+    """
+    Tries the following paths, in order, to load the json config file and
+    return it as a dict:
+
+    * `$_SCRIPTDIR/config.json`
+    * `$HOME/.pugbot-ng.json`
+    * `/etc/pugbot-ng.json`
+
+    If no valid config files are found, one is automatically generated at
+    `$_SCRIPTDIR/config.json`.
+    """
+    _SCRIPTDIR = os.path.dirname(os.path.realpath(__file__))
+    _TRYPATHS = [_SCRIPTDIR + "config.json",
+                 os.path.expanduser("~/.pugbot-ng.json"),
+                 "/etc/pugbot-ng.json"]
+    config = {}
+    while not config:
+        try:
+            with open(_TRYPATHS[0], "r") as configFile:
+                config = json.loads(configFile.read())
+        except FileNotFoundError:
+            _TRYPATHS.pop(0)
+        if not _TRYPATHS:
+            logging.warning("Missing config file. Autogenerating default "
+                            + "configuration.")
+            config = __CONFIG
+            with open(_SCRIPTDIR + "config.json", "w") as configFile:
+                configFile.write(
+                    json.dumps(__CONFIG, sort_keys=True, indent=4))
+    return config
 
 
 class Pugbot(irc.bot.SingleServerIRCBot):
@@ -272,18 +306,8 @@ class Pugbot(irc.bot.SingleServerIRCBot):
 
 
 def main():
-    try:
-        configFile = open("config.json", "r")
-        config = json.loads(configFile.read())
-        configFile.close()
-    except FileNotFoundError:
-        logging.warning("Missing config file. Autogenerating default "
-                        + "configuration.")
-        config = __CONFIG
-        with open("config.json", "w") as configFile:
-            configFile.write(json.dumps(__CONFIG, sort_keys=True, indent=4))
 
-    bot = Pugbot(config)
+    bot = Pugbot(_load_config())
     bot.start()
 
 if __name__ == "__main__":
