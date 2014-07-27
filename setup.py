@@ -27,7 +27,7 @@ setuptools.setup(
     author_email=about["__email__"],
 
     classifiers=[
-        "Intended Audience :: System Adminstrators",
+        "Intended Audience :: End Users/Desktop",
         "License :: OSI Approved :: BSD License",
         "Natural Language :: English",
         "Operating System :: MacOS :: MacOS X",
