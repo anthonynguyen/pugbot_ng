@@ -35,8 +35,8 @@ def _load_config():
     If no valid config files are found, one is automatically generated at
     `$_SCRIPTDIR/config.json`.
     """
-    _SCRIPTDIR = os.path.dirname(os.path.realpath(__file__))
-    _TRYPATHS = [_SCRIPTDIR + "config.json",
+    _LOCALCONF = os.path.dirname(os.path.realpath(__file__)) + "/config.json"
+    _TRYPATHS = [_LOCALCONF,
                  os.path.expanduser("~/.pugbot-ng.json"),
                  "/etc/pugbot-ng.json"]
     config = {}
@@ -50,7 +50,7 @@ def _load_config():
             logging.warning("Missing config file. Autogenerating default "
                             + "configuration.")
             config = __CONFIG
-            with open(_SCRIPTDIR + "config.json", "w") as configFile:
+            with open(_LOCALCONF, "w") as configFile:
                 configFile.write(
                     json.dumps(__CONFIG, sort_keys=True, indent=4))
     return config
