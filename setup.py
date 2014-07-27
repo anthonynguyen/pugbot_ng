@@ -52,6 +52,6 @@ setuptools.setup(
         "six == 1.7.3"
     ],
     entry_points={
-        "console_scripts": ["pugbot_ng=pugbot_ng:main"]
+        "console_scripts": ["pugbot_ng=pugbot_ng.pugbot_ng:main"]
     }
 )
