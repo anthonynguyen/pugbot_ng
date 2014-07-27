@@ -59,14 +59,14 @@ def _load_config():
     return it as a dict:
 
     * `$HOME/.pugbot-ng.json`
-    * `/etc/pugbot-ng.json`
+    * `/etc/pugbot_ng.json`
 
     If no valid config files are found, one is automatically generated at
-    `$HOME/.pugbot-ng.json`.
+    `$HOME/.pugbot_ng.json`.
     """
-    _HOMECONF = os.path.expanduser("~/.pugbot-ng.json")
+    _HOMECONF = os.path.expanduser("~/.pugbot_ng.json")
     _TRYPATHS = [_HOMECONF,
-                 "/etc/pugbot-ng.json"]
+                 "/etc/pugbot_ng.json"]
     config = {}
     while not config:
         try:
