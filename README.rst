@@ -3,7 +3,8 @@ pugbot_ng
 
 pugbot-ng = pugbot next gen
 
-commands:
+Commands:
+
 * ``help``
 * ``plzdie``
 * ``join`` or ``join <mapname>``
