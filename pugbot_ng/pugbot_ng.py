@@ -64,7 +64,8 @@ def _load_config():
     If no valid config files are found, one is automatically generated at
     `$HOME/.pugbot-ng.json`.
     """
-    _TRYPATHS = [os.path.expanduser("~/.pugbot-ng.json"),
+    _HOMECONF = os.path.expanduser("~/.pugbot-ng.json")
+    _TRYPATHS = [_HOMECONF,
                  "/etc/pugbot-ng.json"]
     config = {}
     while not config:
@@ -77,7 +78,7 @@ def _load_config():
             logging.warning("Missing config file. Autogenerating default "
                             + "configuration.")
             config = __CONFIG
-            with open(os.path.expanduser("~/.pugbot-ng.json"), "w") as configFile:
+            with open(_HOMECONF, "w") as configFile:
                 configFile.write(
                     json.dumps(__CONFIG, sort_keys=True, indent=4))
     return config
@@ -137,7 +138,7 @@ class Pugbot(irc.bot.SingleServerIRCBot):
         if self.lastpass == self.password:
             self.password = genRandomString(5)
             self.lastpass = self.password
-            
+
         print("The password is: " + self.password)
         if self.owner:
             self.pm(self.owner, "The password is: " + self.password)
