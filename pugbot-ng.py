@@ -231,6 +231,10 @@ class Pugbot(irc.bot.SingleServerIRCBot):
 
     def voteHelper(self, player, string):
         mapMatches = self.resolveMap(string)
+
+        if not string:
+            return
+
         if not mapMatches:
             self.notice(player, "{0} is not a valid map".format(string))
         elif len(mapMatches) > 1:
