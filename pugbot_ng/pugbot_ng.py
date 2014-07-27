@@ -58,16 +58,13 @@ def _load_config():
     Tries the following paths, in order, to load the json config file and
     return it as a dict:
 
-    * `$_SCRIPTDIR/config.json`
     * `$HOME/.pugbot-ng.json`
     * `/etc/pugbot-ng.json`
 
     If no valid config files are found, one is automatically generated at
-    `$_SCRIPTDIR/config.json`.
+    `$HOME/.pugbot-ng.json`.
     """
-    _LOCALCONF = os.path.dirname(os.path.realpath(__file__)) + "/config.json"
-    _TRYPATHS = [_LOCALCONF,
-                 os.path.expanduser("~/.pugbot-ng.json"),
+    _TRYPATHS = [os.path.expanduser("~/.pugbot-ng.json"),
                  "/etc/pugbot-ng.json"]
     config = {}
     while not config:
@@ -80,7 +77,7 @@ def _load_config():
             logging.warning("Missing config file. Autogenerating default "
                             + "configuration.")
             config = __CONFIG
-            with open(_LOCALCONF, "w") as configFile:
+            with open(os.path.expanduser("~/.pugbot-ng.json"), "w") as configFile:
                 configFile.write(
                     json.dumps(__CONFIG, sort_keys=True, indent=4))
     return config
