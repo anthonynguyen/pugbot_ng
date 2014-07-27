@@ -42,4 +42,6 @@ setuptools.setup(
         "Programming Language :: Python :: Implementation :: CPython",
         "Topic :: Communications :: Chat :: Internet Relay Chat"
     ],
+
+    scripts=['pugbot_ng/pugbot_ng.py']
 )
