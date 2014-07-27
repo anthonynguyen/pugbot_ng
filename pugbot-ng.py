@@ -14,7 +14,37 @@ __CONFIG = {
     "channel": "#pugbot-ng",
     "nick": "pugbot-ng",
     "owner": "",
-    "size": 10
+    "size": 10,
+    "maps": [
+        "abbey",
+        "algiers",
+        "austria",
+        "beijing_b3",
+        "bohemia",
+        "cambridge_fixed",
+        "casa",
+        "crossing",
+        "docks",
+        "dust2_v2",
+        "elgin",
+        "facade_b5",
+        "kingdom_rc6",
+        "mandolin",
+        "oildepot",
+        "orbital_sl",
+        "prague",
+        "ramelle",
+        "ricochet",
+        "riyadh",
+        "sanctuary",
+        "thingley",
+        "tohunga_b8",
+        "tohunga_b10",
+        "toxic",
+        "tunis",
+        "turnpike",
+        "uptown"
+    ]
 }
 
 
@@ -68,13 +98,7 @@ class Pugbot(irc.bot.SingleServerIRCBot):
         self.pugSize = config["size"]
 
         self.Q = []
-        self.maps = ["abbey", "algiers", "austria", "beijing_b3",
-                     "bohemia", "cambridge_fixed", "casa", "crossing", "docks",
-                     "dust2_v2", "elgin", "facade_b5", "kingdom_rc6",
-                     "mandolin", "oildepot", "orbital_sl", "prague", "ramelle",
-                     "ricochet", "riyadh", "sanctuary", "thingley",
-                     "tohunga_b8", "tohunga_b10", "toxic", "tunis", "turnpike",
-                     "uptown"]
+        self.maps = config["maps"]
         self.votes = {}
 
         # Adds a Latin-1 fallback when UTF-8 decoding doesn't work
@@ -307,7 +331,8 @@ class Pugbot(irc.bot.SingleServerIRCBot):
 
 def main():
 
-    bot = Pugbot(_load_config())
+    _config = _load_config()
+    bot = Pugbot(_config)
     bot.start()
 
 if __name__ == "__main__":
