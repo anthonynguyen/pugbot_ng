@@ -43,5 +43,8 @@ setuptools.setup(
         "Topic :: Communications :: Chat :: Internet Relay Chat"
     ],
 
-    scripts=['pugbot_ng/pugbot_ng.py']
+    packages=["pugbot_ng"],
+    entry_points={
+        "console_scripts": ["pugbot_ng=pugbot_ng:main"]
+    }
 )
