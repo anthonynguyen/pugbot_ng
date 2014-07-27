@@ -5,11 +5,13 @@ from __future__ import absolute_import, division, print_function
 import os
 import setuptools
 
+base_dir = os.path.dirname(__file__)
+
 about = {}
-with open(os.path.join(os.path.base_dir, "pugbot_ng", "__about__.py")) as f:
+with open(os.path.join(base_dir, "pugbot_ng", "__about__.py")) as f:
     exec(f.read(), about)
 
-with open(os.path.join(os.path.base_dir, "README.rst")) as f:
+with open(os.path.join(base_dir, "README.rst")) as f:
     long_description = f.read()
 
 setuptools.setup(
