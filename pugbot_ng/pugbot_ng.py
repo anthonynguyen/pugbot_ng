@@ -157,7 +157,7 @@ class PugState():
         self.maps = config["maps"]
         self.votes = {}
 
-        self.loggedIn = []
+        self.loggedIn = self.owners
 
 
 class CommandHandler():
