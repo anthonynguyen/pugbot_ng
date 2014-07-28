@@ -29,6 +29,7 @@ class CommandTest(unittest.TestCase):
         self.handler.state = self.state
 
     def test_join(self):
+        self.state.Q = []
         testQueue = []
         self.handler.cmd_join("user1", "")
         testQueue.append("user1")
@@ -54,6 +55,33 @@ class CommandTest(unittest.TestCase):
         self.assertEqual(self.state.Q, testQueue)
         self.bot.say.assert_called_with("user3 voted for uptown")
         self.assertEqual(self.state.votes, {"user3": "uptown"})
+
+    def test_leave(self):
+        self.state.Q = ["user1"]
+
+        self.handler.cmd_leave("user1", "")
+        self.assertEqual(self.state.Q, [])
+        self.bot.say.assert_called_with("user1 was removed from the queue")
+
+        self.handler.cmd_leave("user1", "")
+        self.bot.notice.assert_called_with("user1", "You are not in the queue")
+
+    def test_status(self):
+        self.state.Q = ["user1", "user2", "user3"]
+
+        self.handler.cmd_status("user1", "")
+        self.bot.notice.assert_has_calls([
+            unittest.mock.call("user1", "Queue status: 3/10"),
+            unittest.mock.call("user1", "user1, user2, user3")
+        ])
+
+        self.state.Q = []
+        self.handler.cmd_status("user1", "")
+        self.bot.notice.assert_called_with("user1", "Queue is empty: 0/10")
+
+    def test_maps(self):
+        self.handler.cmd_maps("user1", "")
+        self.bot.notice.assert_called_with("user1", "Available maps: abbey, uptown")
 
 if __name__ == "__main__":
     unittest.main()
