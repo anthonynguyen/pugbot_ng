@@ -114,6 +114,9 @@ class Pugbot(irc.bot.SingleServerIRCBot):
         if user in self.state.votes:
             self.state.votes.pop(user)
 
+        if user in self.state.loggedIn:
+            self.state.loggedIn.remove(user)
+
     def _on_nick(self, conn, ev):
         old = ev.source.nick
         new = ev.target
@@ -125,6 +128,10 @@ class Pugbot(irc.bot.SingleServerIRCBot):
         if old in self.state.votes:
             self.state.votes[new] = self.state.votes[old]
             self.state.votes.pop(old)
+
+        if old in self.state.loggedIn:
+            self.state.loggedIn.remove(old)
+            self.state.loggedIn.append(new)
 
     def _on_part(self, conn, ev):
         self.removeUser(ev.source.nick)
@@ -150,6 +157,8 @@ class PugState():
         self.maps = config["maps"]
         self.votes = {}
 
+        self.loggedIn = []
+
 
 class CommandHandler():
     def __init__(self, bot):
@@ -162,15 +171,22 @@ class CommandHandler():
         command = text[0].lower()
         data = " ".join(text[1:])
 
-        if (data[:5] == self.state.password):
-            pref = "pw_cmd_"
-        else:
-            pref = "cmd_"
+        found = False
 
         try:
-            commandFunc = getattr(self, pref + command)
+            commandFunc = getattr(self, "cmd_" + command)
             commandFunc(issuedBy, data)
+            found = True
         except AttributeError:
+            if data[:5] == self.state.password or issuedBy in self.state.loggedIn:
+                try:
+                    commandFunc = getattr(self, "pw_cmd_" + command)
+                    commandFunc(issuedBy, data)
+                    found = True
+                except AttributeError:
+                    pass
+        
+        if not found:
             self.bot.notice(issuedBy, "Command not found: " + command)
 
     """
@@ -283,6 +299,14 @@ class CommandHandler():
                     map, tallies[map], "" if tallies[map] == 1 else "s"))
         else:
             self.bot.notice(issuedBy, "There are no current votes")
+
+    def pw_cmd_login(self, issuedBy, data):
+        """.login - logs you in"""
+        if issuedBy not in self.state.loggedIn:
+            self.state.loggedIn.append(issuedBy)
+            self.bot.notice(issuedBy, "You have successfully logged in")
+        else:
+            self.bot.notice(issuedBy, "You are already logged in")
 
     def pw_cmd_plzdie(self, issuedBy, data):
         """.plzdie - kills the bot"""
