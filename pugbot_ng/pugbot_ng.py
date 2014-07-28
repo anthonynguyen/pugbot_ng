@@ -54,14 +54,16 @@ class Pugbot(irc.bot.SingleServerIRCBot):
     """
 
     def on_privmsg(self, conn, ev):
-        self.parseChat(conn, ev)
+        self.parseChat(ev)
 
     def on_pubmsg(self, conn, ev):
-        self.parseChat(conn, ev)
+        self.parseChat(ev)
+        if self.state.password in ev.arguments[0]:
+            self.new_password()
 
-    def parseChat(self, conn, ev):
+    def parseChat(self, ev):
         if (ev.arguments[0][0] in self.state.cmdPrefixes):
-            self.commandHandler.executeCommand(conn, ev)
+            self.commandHandler.executeCommand(ev)
 
     """
     #------------------------------------------#
@@ -165,7 +167,7 @@ class CommandHandler():
         self.bot = bot
         self.state = bot.state
 
-    def executeCommand(self, conn, ev):
+    def executeCommand(self, ev):
         issuedBy = ev.source.nick
         text = ev.arguments[0][1:].split(" ")
         command = text[0].lower()
