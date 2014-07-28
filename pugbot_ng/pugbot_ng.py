@@ -129,16 +129,12 @@ class Pugbot(irc.bot.SingleServerIRCBot):
         conn.join(self.channel)
 
         self.password = genRandomString(5)
-        self.lastpass = self.password
 
         print("The password is: " + self.password)
         _msg_owners("The password is: " + self.password)
 
     def new_password(self):
-
-        if self.lastpass == self.password:
-            self.password = genRandomString(5)
-            self.lastpass = self.password
+        self.password = genRandomString(5)
 
         print("The password is: " + self.password)
         _msg_owners("The password is: " + self.password)

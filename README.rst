@@ -7,6 +7,7 @@ Commands:
 
 * ``help``
 * ``plzdie``
+* ``forcestart``
 * ``join`` or ``join <mapname>``
 * ``leave``
 * ``status``
