@@ -76,7 +76,7 @@ class Pugbot(irc.bot.SingleServerIRCBot):
             self.say("A game cannot be started with fewer than 2 players.")
             return
 
-        mapVotes = self.state.votes.values()
+        mapVotes = list(self.state.votes.values())
 
         if not mapVotes:
             mapVotes = self.state.maps
@@ -292,7 +292,7 @@ class CommandHandler():
     def cmd_votes(self, issuedBy, data):
         """.votes - show number of votes per map"""
 
-        mapvotes = self.state.votes.values()
+        mapvotes = list(self.state.votes.values())
         tallies = dict((map, mapvotes.count(map)) for map in mapvotes)
 
         if self.state.votes:
