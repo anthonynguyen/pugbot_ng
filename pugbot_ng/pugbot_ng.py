@@ -13,7 +13,9 @@ __CONFIG = {
     "prefixes": "!>@.",
     "channel": "#pugbot-ng",
     "nick": "pugbot-ng",
-    "owner": "",
+    "owners": [
+        ""
+    ],
     "size": 10,
     "maps": [
         "abbey",
@@ -91,7 +93,7 @@ class Pugbot(irc.bot.SingleServerIRCBot):
             config["nick"], config["nick"])
         self.channel = config["channel"]
         self.cmdPrefixes = config["prefixes"]
-        self.owner = config["owner"]
+        self.owners = config["owners"]
         self.password = ""
         self.pugSize = config["size"]
 
@@ -130,8 +132,7 @@ class Pugbot(irc.bot.SingleServerIRCBot):
         self.lastpass = self.password
 
         print("The password is: " + self.password)
-        if self.owner:
-            self.pm(self.owner, "The password is: " + self.password)
+        _msg_owners("The password is: " + self.password)
 
     def new_password(self):
 
@@ -140,8 +141,7 @@ class Pugbot(irc.bot.SingleServerIRCBot):
             self.lastpass = self.password
 
         print("The password is: " + self.password)
-        if self.owner:
-            self.pm(self.owner, "The password is: " + self.password)
+        _msg_owners("The password is: " + self.password)
 
     def on_privmsg(self, conn, e):
         if (e.arguments[0][0] in self.cmdPrefixes):
@@ -173,6 +173,10 @@ class Pugbot(irc.bot.SingleServerIRCBot):
     #               Other Stuff                #
     #------------------------------------------#
     """
+
+    def _msg_owners(self, message):
+        for owner in self.owners:
+            self.pm(owner, message)
 
     def _on_nick(self, conn, ev):
         old = ev.source.nick
