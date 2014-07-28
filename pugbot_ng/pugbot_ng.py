@@ -55,13 +55,13 @@ class Pugbot(irc.bot.SingleServerIRCBot):
         self.password = genRandomString(5)
 
         print("The password is: " + self.password)
-        _msg_owners("The password is: " + self.password)
+        self._msg_owners("The password is: " + self.password)
 
     def new_password(self):
         self.password = genRandomString(5)
 
         print("The password is: " + self.password)
-        _msg_owners("The password is: " + self.password)
+        self._msg_owners("The password is: " + self.password)
 
     def on_privmsg(self, conn, e):
         if (e.arguments[0][0] in self.cmdPrefixes):
