@@ -15,11 +15,25 @@ Commands:
 * ``vote <mapname>``
 * ``votes``
 
+Installation
+------------
+
+To install the release version:
+
+1. ``pip install pugbot_ng``
+2. ``pugbot_ng``
+
+To install the git version:
+
+1. ``git clone http://github.com/clearskies/pugbot_ng.git``
+2. ``cd pugbot_ng``
+3. ``./setup.py install``
+4. ``pugbot_ng``
+
 Configuration
 -------------
 
-Configuration is handled by a JSON file, located in either `/etc/pugbot_ng.json`
-or `$HOME/.pugbot_ng.json`. An example configuration file is as follows::
+Configuration is handled by a JSON file, located in either ``/etc/pugbot_ng.json`` or ``$HOME/.pugbot_ng.json``. An example configuration file is as follows::
 
     {
         "channel": "#pugbot-ng",
