@@ -239,7 +239,7 @@ class CommandHandler():
         self.voteHelper(issuedBy, data)
 
         if len(self.state.Q) == self.state.pugSize:
-            self.startGame()
+            self.bot.startGame()
 
     def cmd_leave(self, issuedBy, data):
         """.leave - leaves the queue"""
@@ -286,14 +286,14 @@ class CommandHandler():
 
     def pw_cmd_plzdie(self, issuedBy, data):
         """.plzdie - kills the bot"""
-        self.die("{0} doesn't like me :<".format(issuedBy))
+        self.bot.die("{0} doesn't like me :<".format(issuedBy))
 
     def pw_cmd_forcestart(self, issuedBy, data):
         """.forcestart - starts the game regardless of whether there are enough
         players or not"""
         self.bot.say("{0} is forcing the game to start!".format(issuedBy))
         self.bot.startGame()
-        self.new_password()
+        self.bot.new_password()
 
 
 
