@@ -1,6 +1,9 @@
 pugbot_ng
 =========
 
+.. image:: https://travis-ci.org/clearskies/pugbot_ng.svg?branch=master
+    :target: https://travis-ci.org/clearskies/pugbot_ng
+
 pugbot-ng = pugbot next gen
 
 Commands:
