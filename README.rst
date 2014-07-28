@@ -18,8 +18,8 @@ Commands:
 Configuration
 -------------
 
-Configuration is handled by a JSON file, located in either `/etc/pugbot_ng.json`
-or `$HOME/.pugbot_ng.json`. An example configuration file is as follows::
+Configuration is handled by a JSON file, located in either ``/etc/pugbot_ng.json``
+or ``$HOME/.pugbot_ng.json``. An example configuration file is as follows::
 
     {
         "channel": "#pugbot-ng",
