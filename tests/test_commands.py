@@ -121,8 +121,8 @@ class CommandTest(unittest.TestCase):
         self.state.votes = {"user1": "turnpike", "user2": "uptown", "user3": "uptown", "user4": "abbey"}
         self.handler.cmd_votes("user1", "")
         self.bot.notice.assert_has_calls([
-            unittest.mock.call("user1", "turnpike: 1 vote"),
             unittest.mock.call("user1", "uptown: 2 votes"),
+            unittest.mock.call("user1", "turnpike: 1 vote"),
             unittest.mock.call("user1", "abbey: 1 vote")
         ])
 
