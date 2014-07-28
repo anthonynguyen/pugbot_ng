@@ -52,4 +52,4 @@ coverage.xml
 docs/_build/
 
 env/
-config.json
+*.swp
