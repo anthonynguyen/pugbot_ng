@@ -11,6 +11,7 @@ class CommandTest(unittest.TestCase):
             "channel": "#pugbot-ng",
             "maps": [
                 "abbey",
+                "turnpike",
                 "uptown"
             ],
             "nick": "pugbot-ng",
@@ -81,7 +82,49 @@ class CommandTest(unittest.TestCase):
 
     def test_maps(self):
         self.handler.cmd_maps("user1", "")
-        self.bot.notice.assert_called_with("user1", "Available maps: abbey, uptown")
+        self.bot.notice.assert_called_with("user1", "Available maps: abbey, turnpike, uptown")
+
+    def test_vote(self):
+        self.state.Q = []
+        
+        self.handler.cmd_vote("user1", "")
+        self.bot.notice.assert_called_with("user1", "You are not in the queue")
+
+        self.state.Q = ["user1"]
+        
+        self.handler.cmd_vote("user1", "asd")
+        self.bot.notice.assert_called_with("user1", "asd is not a valid map")
+
+        self.handler.cmd_vote("user1", "u")
+        self.bot.notice.assert_called_with("user1", "There are multiple matches for 'u': turnpike, uptown")
+
+        self.state.votes = {}
+        self.handler.cmd_vote("user1", "turn")
+        self.assertEqual(self.state.votes, {"user1": "turnpike"})
+        self.bot.say.assert_called_with("user1 voted for turnpike")
+    
+    def test_votes(self):
+        self.state.votes = {}
+        self.handler.cmd_votes("user1", "")
+        self.bot.notice.assert_called_with("user1", "There are no current votes")
+
+        self.state.votes = {"user1": "turnpike"}
+        self.handler.cmd_votes("user1", "")
+        self.bot.notice.assert_called_with("user1", "turnpike: 1 vote")
+
+        self.state.votes = {"user1": "turnpike", "user2": "turnpike"}
+        self.handler.cmd_votes("user1", "")
+        self.bot.notice.assert_called_with("user1", "turnpike: 2 votes")
+
+        self.bot.notice.reset_mock()
+
+        self.state.votes = {"user1": "turnpike", "user2": "uptown", "user3": "uptown", "user4": "abbey"}
+        self.handler.cmd_votes("user1", "")
+        self.bot.notice.assert_has_calls([
+            unittest.mock.call("user1", "turnpike: 1 vote"),
+            unittest.mock.call("user1", "uptown: 2 votes"),
+            unittest.mock.call("user1", "abbey: 1 vote")
+        ])
 
 if __name__ == "__main__":
     unittest.main()
