@@ -9,7 +9,9 @@ def genRandomString(length):
     alpha = "abcdefghijklmnopqrstuvwxyz"
     return "".join(random.choice(alpha) for _ in range(length))
 
+
 class Pugbot(irc.bot.SingleServerIRCBot):
+
     def __init__(self, state):
         super(Pugbot, self).__init__(
             [(state.server, state.port)],
@@ -141,7 +143,9 @@ class Pugbot(irc.bot.SingleServerIRCBot):
     def _on_quit(self, conn, ev):
         self.removeUser(ev.source.nick)
 
+
 class PugState():
+
     def __init__(self, config):
         self.server = config["server"]
         self.port = config["port"]
@@ -163,6 +167,7 @@ class PugState():
 
 
 class CommandHandler():
+
     def __init__(self, bot):
         self.bot = bot
         self.state = bot.state
@@ -180,14 +185,15 @@ class CommandHandler():
             commandFunc(issuedBy, data)
             found = True
         except AttributeError:
-            if data[:5] == self.state.password or issuedBy in self.state.loggedIn:
+            if data[
+                    :5] == self.state.password or issuedBy in self.state.loggedIn:
                 try:
                     commandFunc = getattr(self, "pw_cmd_" + command)
                     commandFunc(issuedBy, data)
                     found = True
                 except AttributeError:
                     pass
-        
+
         if not found:
             self.bot.notice(issuedBy, "Command not found: " + command)
 
@@ -217,13 +223,13 @@ class CommandHandler():
         if not mapMatches:
             self.bot.notice(player, "{0} is not a valid map".format(string))
         elif len(mapMatches) > 1:
-            self.bot.notice(player,
-                        "There are multiple matches for '{0}': ".format(string)
-                        + ", ".join(mapMatches))
+            self.bot.notice(
+                player,
+                "There are multiple matches for '{0}': ".format(string) +
+                ", ".join(mapMatches))
         else:
             self.state.votes[player] = mapMatches[0]
             self.bot.say("{0} voted for {1}".format(player, mapMatches[0]))
-
 
     """
     #------------------------------------------#
@@ -271,16 +277,22 @@ class CommandHandler():
     def cmd_status(self, issuedBy, data):
         """.status - displays the status of the current queue"""
         if len(self.state.Q) == 0:
-            self.bot.notice(issuedBy, "Queue is empty: 0/{0}".format(self.state.pugSize))
+            self.bot.notice(
+                issuedBy, "Queue is empty: 0/{0}".format(self.state.pugSize))
             return
 
         self.bot.notice(issuedBy,
-                    "Queue status: {0}/{1}".format(len(self.state.Q), self.state.pugSize))
+                        "Queue status: {0}/{1}".format(len(self.state.Q),
+                                                       self.state.pugSize))
         self.bot.notice(issuedBy, ", ".join(self.state.Q))
 
     def cmd_maps(self, issuedBy, data):
         """.maps - list maps that are able to be voted"""
-        self.bot.notice(issuedBy, "Available maps: " + ", ".join(self.state.maps))
+        self.bot.notice(
+            issuedBy,
+            "Available maps: " +
+            ", ".join(
+                self.state.maps))
 
     def cmd_vote(self, issuedBy, data):
         """.vote - vote for a map"""
@@ -320,7 +332,6 @@ class CommandHandler():
         self.bot.say("{0} is forcing the game to start!".format(issuedBy))
         self.bot.startGame()
         self.bot.new_password()
-
 
 
 def main():
