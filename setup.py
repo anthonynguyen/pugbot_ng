@@ -52,6 +52,7 @@ setuptools.setup(
         "pyrcon == 0.0.1",
         "six == 1.7.3"
     ],
+    test_suite='nose.collector',
     entry_points={
         "console_scripts": ["pugbot_ng=pugbot_ng.pugbot_ng:main"]
     }
