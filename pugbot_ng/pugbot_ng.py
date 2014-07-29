@@ -95,6 +95,29 @@ class Pugbot(irc.bot.SingleServerIRCBot):
             captains[0], captains[1]))
         self.say("\x037Players: " + ", ".join(self.state.Q))
 
+        mine = -1
+        for n, s in enumerate(self.state.servers):
+            if not s["active"]:
+                s["active"] = True
+                mine = n
+        
+        if mine == -1:
+            self.say("No servers available, what a shame... :(")
+            self.state.Q = []
+            self.state.votes = {}
+            return
+
+        s = self.state.servers[mine]
+        
+        spass = genRandomString(5)
+        
+        s["connection"].send("set g_password " + spass)
+        s["connection"].send("exec uzl_ts.cfg")
+        s["connection"].send("map " + chosenMap)
+        
+        for user in self.state.Q:
+            self.pm(user, "The PUG is starting: /connect {0}:{1}; name {2}; password {3}".format(s["host"], s["port"], user, spass))
+
         self.state.Q = []
         self.state.votes = {}
 
