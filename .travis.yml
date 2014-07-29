@@ -3,8 +3,7 @@ python:
   - "3.4"
 install:
   - "python setup.py install"
-  - "pip install nose"
-  - "pip install pep8"
+  - "pip install -r dev-requirements.txt"
 script:
   - "python setup.py test"
 
