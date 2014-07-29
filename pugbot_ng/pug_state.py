@@ -1,3 +1,5 @@
+from pyrcon.rcon import RConnection
+
 class PugState():
 
     def __init__(self, config):
@@ -18,3 +20,17 @@ class PugState():
         self.votes = {}
 
         self.loggedIn = self.owners
+
+        self.servers = []
+       
+        for s in config["urt_servers"]:
+            server = {
+                "host": s["host"],
+                "port": s["port"],
+                "password": s["password"],
+                "active": False,
+                "connection": RConnection(s["host"], s["port"], s["password"])
+            }
+            if server["connection"].test():
+                self.servers.append(server)
+

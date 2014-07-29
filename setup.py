@@ -49,6 +49,7 @@ setuptools.setup(
         "jaraco.timing == 1.0",
         "jaraco.util == 10.2",
         "more-itertools == 2.2",
+        "pyrcon == 0.0.1",
         "six == 1.7.3"
     ],
     entry_points={

@@ -41,6 +41,14 @@ __CONFIG = {
         "tunis",
         "turnpike",
         "uptown"
+    ],
+
+    "urt_servers": [
+        {
+            "host": "example.com",
+            "port": 27960,
+            "password": "rcon_password"
+        }
     ]
 }
 
