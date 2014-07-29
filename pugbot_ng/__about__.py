@@ -9,7 +9,7 @@ __title__ = "pugbot_ng"
 __summary__ = "Urban Terror PUG IRC bot."
 __uri__ = "https://github.com/clearskies/pugbot_ng"
 
-__version__ = "0.0.3"
+__version__ = "0.0.4"
 
 __author__ = "Anthony Nguyen"
 __email__ = "anknguyen@gmail.com"
