@@ -79,7 +79,15 @@ or ``$HOME/.pugbot_ng.json``. An example configuration file is as follows::
         "port": 6667,
         "prefixes": "!>@.",
         "server": "irc.quakenet.org",
-        "size": 10
+        "size": 10,
+
+        "urt_servers": [
+            {
+                "host": "example.com",
+                "port": 27960,
+                "password": "rcon_password"
+           }
+        ]
     }
 
 Discussion
