@@ -74,7 +74,7 @@ class CommandTest(unittest.TestCase):
         self.bot.notice.assert_has_calls([
             unittest.mock.call("user1", "Queue status: 3/10"),
             unittest.mock.call("user1", "user1, user2, user3")
-        ])
+        ], any_order = True)
 
         self.state.Q = []
         self.handler.cmd_status("user1", "")
@@ -124,7 +124,7 @@ class CommandTest(unittest.TestCase):
             unittest.mock.call("user1", "uptown: 2 votes"),
             unittest.mock.call("user1", "turnpike: 1 vote"),
             unittest.mock.call("user1", "abbey: 1 vote")
-        ])
+        ], any_order = True)
 
 if __name__ == "__main__":
     unittest.main()
