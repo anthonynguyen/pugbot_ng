@@ -162,4 +162,3 @@ class CommandHandler():
         players or not"""
         self.bot.say("{0} is forcing the game to start!".format(issuedBy))
         self.bot.startGame()
-

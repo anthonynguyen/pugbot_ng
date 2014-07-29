@@ -1,5 +1,6 @@
 from pyrcon.rcon import RConnection
 
+
 class PugState():
 
     def __init__(self, config):
@@ -22,7 +23,7 @@ class PugState():
         self.loggedIn = self.owners
 
         self.servers = []
-       
+
         for s in config["urt_servers"]:
             server = {
                 "host": s["host"],
@@ -33,4 +34,3 @@ class PugState():
             }
             if server["connection"].test():
                 self.servers.append(server)
-

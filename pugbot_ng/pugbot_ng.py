@@ -4,6 +4,7 @@ from . import config_loader
 from .command_handler import CommandHandler
 from .pug_state import PugState
 from .util import genRandomString
+from irc.buffer import LenientDecodingLineBuffer
 import irc.bot
 import random
 
@@ -18,7 +19,7 @@ class Pugbot(irc.bot.SingleServerIRCBot):
         self.state = state
 
         # Adds a Latin-1 fallback when UTF-8 decoding doesn't work
-        irc.client.ServerConnection.buffer_class = irc.buffer.LenientDecodingLineBuffer
+        irc.client.ServerConnection.buffer_class = LenientDecodingLineBuffer
 
         self.commandHandler = CommandHandler(self)
 
