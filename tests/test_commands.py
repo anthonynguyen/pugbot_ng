@@ -6,7 +6,8 @@ import unittest
 import unittest.mock
 
 class CommandTest(unittest.TestCase):
-    def setUp(self):
+    @classmethod
+    def setUpClass(self):
         config = {
             "channel": "#pugbot-ng",
             "maps": [
@@ -21,16 +22,28 @@ class CommandTest(unittest.TestCase):
             "port": 6667,
             "prefixes": "!>@.",
             "server": "irc.quakenet.org",
-            "size": 10
+            "size": 10,
+            "urt_servers": [
+                {
+                    "host": "example.com",
+                    "port": 27960,
+                    "password": "rconpassword"
+                }
+            ]
         }
+
 
         self.bot = unittest.mock.Mock()
         self.handler = CommandHandler(self.bot)
         self.state = PugState(config)
         self.handler.state = self.state
 
-    def test_join(self):
+    def setUp(self):
+        self.bot.reset_mock()
         self.state.Q = []
+        self.state.votes = {}
+
+    def test_join(self):
         testQueue = []
         self.handler.cmd_join("user1", "")
         testQueue.append("user1")
@@ -85,8 +98,6 @@ class CommandTest(unittest.TestCase):
         self.bot.notice.assert_called_with("user1", "Available maps: abbey, turnpike, uptown")
 
     def test_vote(self):
-        self.state.Q = []
-        
         self.handler.cmd_vote("user1", "")
         self.bot.notice.assert_called_with("user1", "You are not in the queue")
 
@@ -104,7 +115,6 @@ class CommandTest(unittest.TestCase):
         self.bot.say.assert_called_with("user1 voted for turnpike")
     
     def test_votes(self):
-        self.state.votes = {}
         self.handler.cmd_votes("user1", "")
         self.bot.notice.assert_called_with("user1", "There are no current votes")
 
