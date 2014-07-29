@@ -90,6 +90,17 @@ or ``$HOME/.pugbot_ng.json``. An example configuration file is as follows::
         ]
     }
 
+Testing
+-------
+
+Firstly, install the dev requirements, probably in a virtualenv::
+
+    pip install -r dev-requirements.txt
+
+To run tests, run::
+
+    python setup.py test
+
 Discussion
 ----------
 
