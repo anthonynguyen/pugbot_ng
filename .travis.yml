@@ -1,9 +1,10 @@
 language: python
 python:
-  - "3.4"
+  - 3.4
 install:
-  - "python setup.py install"
-  - "pip install -r dev-requirements.txt"
+  - pip install -r dev-requirements.txt
+  - python setup.py install
 script:
-  - "python setup.py test"
-
+  - coverage run --source=pugbot_ng setup.py test
+after_success:
+  - coveralls
