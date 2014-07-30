@@ -17,6 +17,7 @@ Commands:
 * ``help``
 * ``plzdie``
 * ``forcestart``
+* ``login``
 * ``join`` or ``join <mapname>``
 * ``leave``
 * ``status``
