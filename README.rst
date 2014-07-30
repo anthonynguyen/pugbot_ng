@@ -1,8 +1,14 @@
 pugbot_ng
 =========
 
+.. image:: http://img.shields.io/pypi/v/pugbot_ng.svg
+    :target: https://pypi.python.org/pypi/pugbot_ng
 .. image:: https://travis-ci.org/clearskies/pugbot_ng.svg?branch=master
     :target: https://travis-ci.org/clearskies/pugbot_ng
+.. image:: https://img.shields.io/coveralls/clearskies/pugbot_ng.svg
+    :target: https://coveralls.io/r/clearskies/pugbot_ng
+.. image:: http://img.shields.io/pypi/l/pugbot_ng.svg
+    :target: https://github.com/clearskies/pugbot_ng/blob/master/LICENSE
 
 pugbot-ng = pugbot next gen
 
