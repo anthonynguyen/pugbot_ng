@@ -17,7 +17,8 @@ class CommandHandler():
             commandFunc(issuedBy, data)
             found = True
         except AttributeError:
-            if data[:5] == self.state.password or issuedBy in self.state.loggedIn:
+            if (data[:5] == self.state.password
+                    or issuedBy in self.state.loggedIn):
                 try:
                     commandFunc = getattr(self, "pw_cmd_" + command)
                     commandFunc(issuedBy, data)
