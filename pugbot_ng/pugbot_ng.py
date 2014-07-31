@@ -16,6 +16,7 @@ class Pugbot(irc.bot.SingleServerIRCBot):
             state.nick, state.nick)
 
         self.state = state
+        self.i = 0
 
         # Adds a Latin-1 fallback when UTF-8 decoding doesn't work
         irc.client.ServerConnection.buffer_class = irc.buffer.LenientDecodingLineBuffer
@@ -89,8 +90,10 @@ class Pugbot(irc.bot.SingleServerIRCBot):
 
         captains = random.sample(self.state.Q, 2)
 
-        self.say("\x030,2Ding ding ding! The PUG is starting! The map is "
-                 + chosenMap)
+        self.i += 1
+
+        self.say("\x030,2Ding ding ding! PUG#{0} is starting! The map is "
+                 .format(self.i) + chosenMap)
         self.say("\x030,2The captains are {0} and {1}!".format(
             captains[0], captains[1]))
         self.say("\x037Players: " + ", ".join(self.state.Q))
