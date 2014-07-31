@@ -119,7 +119,8 @@ class Pugbot(irc.bot.SingleServerIRCBot):
         s["connection"].send("map " + chosenMap)
         
         for user in self.state.Q:
-            self.pm(user, "The PUG is starting: /connect {0}:{1}; name {2}; password {3}".format(s["host"], s["port"], user, spass))
+            self.pm(user, "PUG#{0} is starting: /connect {1}:{2}; name {3}; password {4}"
+                    .format(self.i, s["host"], s["port"], user, spass))
 
         self.state.Q = []
         self.state.votes = {}
