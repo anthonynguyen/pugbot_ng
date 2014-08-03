@@ -25,12 +25,8 @@ class PugState():
         self.servers = []
 
         for s in config["urt_servers"]:
-            server = {
-                "host": s["host"],
-                "port": s["port"],
-                "password": s["password"],
-                "active": False,
-                "connection": RConnection(s["host"], s["port"], s["password"])
-            }
-            if server["connection"].test():
-                self.servers.append(server)
+            with Rconnection(s["host"], s["port"], s["password"]) as urtserver:
+                self.servers.append({
+                    "active": False,
+                    "connection": urtserver
+                })
