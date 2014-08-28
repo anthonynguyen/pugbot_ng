@@ -4,11 +4,16 @@ class CommandHandler():
         self.bot = bot
         self.state = bot.state
 
-    def executeCommand(self, ev):
+    def executeCommand(self, ev, private):
         issuedBy = ev.source.nick
         text = ev.arguments[0][1:].split(" ")
         command = text[0].lower()
         data = " ".join(text[1:])
+
+        if private:
+            self.bot.target = issuedBy
+        else:
+            self.bot.target = self.state.channel
 
         found = False
 
@@ -27,7 +32,7 @@ class CommandHandler():
                     pass
 
         if not found:
-            self.bot.notice(issuedBy, "Command not found: " + command)
+            self.bot.reply("Command not found: " + command)
 
     """
     #------------------------------------------#
@@ -53,10 +58,9 @@ class CommandHandler():
             return
 
         if not mapMatches:
-            self.bot.notice(player, "{0} is not a valid map".format(string))
+            self.bot.reply("{0} is not a valid map".format(string))
         elif len(mapMatches) > 1:
-            self.bot.notice(
-                player,
+            self.bot.reply(
                 "There are multiple matches for '{0}': ".format(string) +
                 ", ".join(mapMatches))
         else:
@@ -73,16 +77,16 @@ class CommandHandler():
         """.help [command] - displays this message"""
         if data == "":
             attrs = sorted(dir(self))
-            self.bot.notice(issuedBy, "Commands:")
+            self.bot.reply("Commands:")
             for attr in attrs:
                 if attr[:4] == "cmd_":
-                    self.bot.notice(issuedBy, getattr(self, attr).__doc__)
+                    self.bot.reply(getattr(self, attr).__doc__)
         else:
             try:
                 command = getattr(self, "cmd_" + data.lower())
-                self.bot.notice(issuedBy, command.__doc__)
+                self.bot.reply(command.__doc__)
             except AttributeError:
-                self.bot.notice(issuedBy, "Command not found: " + data)
+                self.bot.reply("Command not found: " + data)
 
     def cmd_join(self, issuedBy, data):
         """.join - joins the queue"""
@@ -90,7 +94,7 @@ class CommandHandler():
             self.state.Q.append(issuedBy)
             self.bot.say("{0} was added to the queue".format(issuedBy))
         else:
-            self.bot.notice(issuedBy, "You are already in the queue")
+            self.bot.reply("You are already in the queue")
 
         self.voteHelper(issuedBy, data)
 
@@ -104,32 +108,26 @@ class CommandHandler():
             self.state.votes.pop(issuedBy, None)
             self.bot.say("{0} was removed from the queue".format(issuedBy))
         else:
-            self.bot.notice(issuedBy, "You are not in the queue")
+            self.bot.reply("You are not in the queue")
 
     def cmd_status(self, issuedBy, data):
         """.status - displays the status of the current queue"""
         if len(self.state.Q) == 0:
-            self.bot.notice(
-                issuedBy, "Queue is empty: 0/{0}".format(self.state.pugSize))
+            self.bot.reply("Queue is empty: 0/{0}".format(self.state.pugSize))
             return
 
-        self.bot.notice(issuedBy,
-                        "Queue status: {0}/{1}".format(len(self.state.Q),
+        self.bot.reply("Queue status: {0}/{1}".format(len(self.state.Q),
                                                        self.state.pugSize))
-        self.bot.notice(issuedBy, ", ".join(self.state.Q))
+        self.bot.reply(", ".join(self.state.Q))
 
     def cmd_maps(self, issuedBy, data):
         """.maps - list maps that are able to be voted"""
-        self.bot.notice(
-            issuedBy,
-            "Available maps: " +
-            ", ".join(
-                self.state.maps))
+        self.bot.reply("Available maps: " + ", ".join(self.state.maps))
 
     def cmd_vote(self, issuedBy, data):
         """.vote - vote for a map"""
         if issuedBy not in self.state.Q:
-            self.bot.notice(issuedBy, "You are not in the queue")
+            self.bot.reply("You are not in the queue")
         else:
             self.voteHelper(issuedBy, data)
 
@@ -141,18 +139,18 @@ class CommandHandler():
 
         if self.state.votes:
             for map in tallies:
-                self.bot.notice(issuedBy, "{0}: {1} vote{2}".format(
+                self.bot.reply("{0}: {1} vote{2}".format(
                     map, tallies[map], "" if tallies[map] == 1 else "s"))
         else:
-            self.bot.notice(issuedBy, "There are no current votes")
+            self.bot.reply("There are no current votes")
 
     def pw_cmd_login(self, issuedBy, data):
         """.login - logs you in"""
         if issuedBy not in self.state.loggedIn:
             self.state.loggedIn.append(issuedBy)
-            self.bot.notice(issuedBy, "You have successfully logged in")
+            self.bot.reply("You have successfully logged in")
         else:
-            self.bot.notice(issuedBy, "You are already logged in")
+            self.bot.reply("You are already logged in")
 
     def pw_cmd_plzdie(self, issuedBy, data):
         """.plzdie - kills the bot"""

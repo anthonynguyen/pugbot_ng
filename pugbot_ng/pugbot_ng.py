@@ -17,6 +17,8 @@ class Pugbot(irc.bot.SingleServerIRCBot):
             state.nick, state.nick)
 
         self.state = state
+        
+        self.target = self.state.channel
 
         # Adds a Latin-1 fallback when UTF-8 decoding doesn't work
         irc.client.ServerConnection.buffer_class = LenientDecodingLineBuffer
@@ -44,6 +46,9 @@ class Pugbot(irc.bot.SingleServerIRCBot):
     def pm(self, nick, msg):
         self.connection.privmsg(nick, msg)
 
+    def reply(self, msg):
+        self.connection.privmsg(self.target, msg)
+
     def on_welcome(self, conn, ev):
         conn.join(self.state.channel)
         self.new_password()
@@ -55,16 +60,16 @@ class Pugbot(irc.bot.SingleServerIRCBot):
     """
 
     def on_privmsg(self, conn, ev):
-        self.parseChat(ev)
+        self.parseChat(ev, True)
 
     def on_pubmsg(self, conn, ev):
         self.parseChat(ev)
         if self.state.password in ev.arguments[0]:
             self.new_password()
 
-    def parseChat(self, ev):
+    def parseChat(self, ev, private = False):
         if (ev.arguments[0][0] in self.state.cmdPrefixes):
-            self.commandHandler.executeCommand(ev)
+            self.commandHandler.executeCommand(ev, private)
 
     """
     #------------------------------------------#
