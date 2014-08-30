@@ -69,7 +69,7 @@ or ``$HOME/.pugbot_ng.json``. An example configuration file is as follows::
             "ramelle",
             "ricochet",
             "riyadh",
-            "sanctuary",
+            "sanc",
             "thingley",
             "tohunga_b8",
             "tohunga_b10",

@@ -52,7 +52,7 @@ class CommandTest(unittest.TestCase):
 
         self.handler.cmd_join("user1", "")
         self.assertEqual(self.state.Q, testQueue)
-        self.bot.notice.assert_called_with("user1", "You are already in the queue")
+        self.bot.reply.assert_called_with("You are already in the queue")
        
         self.handler.cmd_join("user2", "")
         testQueue.append("user2")
@@ -63,7 +63,7 @@ class CommandTest(unittest.TestCase):
         testQueue.append("user3")
         self.assertEqual(self.state.Q, testQueue)
         self.bot.say.assert_called_with("user3 was added to the queue")
-        self.bot.notice.assert_called_with("user3", "blah is not a valid map")
+        self.bot.reply.assert_called_with("blah is not a valid map")
 
         self.handler.cmd_join("user3", "town")
         self.assertEqual(self.state.Q, testQueue)
@@ -78,36 +78,36 @@ class CommandTest(unittest.TestCase):
         self.bot.say.assert_called_with("user1 was removed from the queue")
 
         self.handler.cmd_leave("user1", "")
-        self.bot.notice.assert_called_with("user1", "You are not in the queue")
+        self.bot.reply.assert_called_with("You are not in the queue")
 
     def test_status(self):
         self.state.Q = ["user1", "user2", "user3"]
 
         self.handler.cmd_status("user1", "")
-        self.bot.notice.assert_has_calls([
-            unittest.mock.call("user1", "Queue status: 3/10"),
-            unittest.mock.call("user1", "user1, user2, user3")
+        self.bot.reply.assert_has_calls([
+            unittest.mock.call("Queue status: 3/10"),
+            unittest.mock.call("user1, user2, user3")
         ], any_order = True)
 
         self.state.Q = []
         self.handler.cmd_status("user1", "")
-        self.bot.notice.assert_called_with("user1", "Queue is empty: 0/10")
+        self.bot.reply.assert_called_with("Queue is empty: 0/10")
 
     def test_maps(self):
         self.handler.cmd_maps("user1", "")
-        self.bot.notice.assert_called_with("user1", "Available maps: abbey, turnpike, uptown")
+        self.bot.reply.assert_called_with("Available maps: abbey, turnpike, uptown")
 
     def test_vote(self):
         self.handler.cmd_vote("user1", "")
-        self.bot.notice.assert_called_with("user1", "You are not in the queue")
+        self.bot.reply.assert_called_with("You are not in the queue")
 
         self.state.Q = ["user1"]
         
         self.handler.cmd_vote("user1", "asd")
-        self.bot.notice.assert_called_with("user1", "asd is not a valid map")
+        self.bot.reply.assert_called_with("asd is not a valid map")
 
         self.handler.cmd_vote("user1", "u")
-        self.bot.notice.assert_called_with("user1", "There are multiple matches for 'u': turnpike, uptown")
+        self.bot.reply.assert_called_with("There are multiple matches for 'u': turnpike, uptown")
 
         self.state.votes = {}
         self.handler.cmd_vote("user1", "turn")
@@ -116,24 +116,24 @@ class CommandTest(unittest.TestCase):
     
     def test_votes(self):
         self.handler.cmd_votes("user1", "")
-        self.bot.notice.assert_called_with("user1", "There are no current votes")
+        self.bot.reply.assert_called_with("There are no current votes")
 
         self.state.votes = {"user1": "turnpike"}
         self.handler.cmd_votes("user1", "")
-        self.bot.notice.assert_called_with("user1", "turnpike: 1 vote")
+        self.bot.reply.assert_called_with("turnpike: 1 vote")
 
         self.state.votes = {"user1": "turnpike", "user2": "turnpike"}
         self.handler.cmd_votes("user1", "")
-        self.bot.notice.assert_called_with("user1", "turnpike: 2 votes")
+        self.bot.reply.assert_called_with("turnpike: 2 votes")
 
         self.bot.notice.reset_mock()
 
         self.state.votes = {"user1": "turnpike", "user2": "uptown", "user3": "uptown", "user4": "abbey"}
         self.handler.cmd_votes("user1", "")
-        self.bot.notice.assert_has_calls([
-            unittest.mock.call("user1", "uptown: 2 votes"),
-            unittest.mock.call("user1", "turnpike: 1 vote"),
-            unittest.mock.call("user1", "abbey: 1 vote")
+        self.bot.reply.assert_has_calls([
+            unittest.mock.call("uptown: 2 votes"),
+            unittest.mock.call("turnpike: 1 vote"),
+            unittest.mock.call("abbey: 1 vote")
         ], any_order = True)
 
 if __name__ == "__main__":
