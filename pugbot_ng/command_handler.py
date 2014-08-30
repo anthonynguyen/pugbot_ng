@@ -117,7 +117,7 @@ class CommandHandler():
             return
 
         self.bot.reply("Queue status: {0}/{1}".format(len(self.state.Q),
-                                                       self.state.pugSize))
+                                                      self.state.pugSize))
         self.bot.reply(", ".join(self.state.Q))
 
     def cmd_maps(self, issuedBy, data):

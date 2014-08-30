@@ -17,7 +17,7 @@ class Pugbot(irc.bot.SingleServerIRCBot):
             state.nick, state.nick)
 
         self.state = state
-        
+
         self.target = self.state.channel
 
         # Adds a Latin-1 fallback when UTF-8 decoding doesn't work
@@ -67,7 +67,7 @@ class Pugbot(irc.bot.SingleServerIRCBot):
         if self.state.password in ev.arguments[0]:
             self.new_password()
 
-    def parseChat(self, ev, private = False):
+    def parseChat(self, ev, private=False):
         if (ev.arguments[0][0] in self.state.cmdPrefixes):
             self.commandHandler.executeCommand(ev, private)
 
