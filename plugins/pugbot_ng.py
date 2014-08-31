@@ -23,6 +23,7 @@ class PugbotPlugin:
 
         self.maps = config["maps"]
         self.size = config["size"]
+        self.checkmap = config["checkmap"]
 
         self.servers = []
 
@@ -30,7 +31,10 @@ class PugbotPlugin:
             with RConnection(s["host"], s["port"], s["password"]) as urtserver:
                 self.servers.append({
                     "active": None,
-                    "connection": urtserver
+                    "connection": urtserver,
+                    "host": s["host"],
+                    "port": s["port"],
+                    "rcon_password": s["password"]
                 })
 
         self.bot.say("[pugbot-ng] {} available servers.".format(
@@ -57,7 +61,7 @@ class PugbotPlugin:
     #             Command Helpers              #
     #------------------------------------------#
     """
-
+  
     def startGame(self):
         if len(self.Q) < 2:
             self.bot.say("A game cannot be started with fewer than 2 players.")
@@ -81,6 +85,35 @@ class PugbotPlugin:
         self.bot.say("\x030,2The captains are {0} and {1}!".format(
             captains[0], captains[1]))
         self.bot.say("\x037Players: " + ", ".join(self.Q))
+
+        mine = -1
+        for n, s in enumerate(self.servers):
+            if not s["active"]:
+                mine = n
+                s["active"] = True
+        
+        if mine == -1:
+            self.bot.say("No servers available, what a shame... :(")
+            self.Q = []
+            self.votes = {}
+            return
+
+        s = self.servers[mine]
+        spass = genRandomString(5)
+        
+        s["connection"].connect()
+        s["connection"].send("set g_password " + spass)
+        s["connection"].send("exec uzl_ts.cfg")
+        s["connection"].send("map " + chosenMap)
+        s["connection"].send("set g_nextmap " + self.checkmap)
+
+        captainString = "Captains are " + " and ".join(captains)
+        s["connection"].send("set sv_joinmessage \"{}\"".format(captainString))
+        for user in self.Q:
+            self.bot.pm(user, 
+                ("The PUG is starting: /connect {0}:{1};" + 
+                "password {2}").format(s["host"], s["port"], spass))
+
 
         self.Q = []
         self.votes = {}
@@ -158,7 +191,7 @@ class PugbotPlugin:
         self.voteHelper(issuedBy, data)
 
         if len(self.Q) == self.size:
-            self.bot.startGame()
+            self.startGame()
 
     def cmd_leave(self, issuedBy, data):
         """leaves the queue"""

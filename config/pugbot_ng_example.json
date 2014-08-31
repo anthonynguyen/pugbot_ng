@@ -30,6 +30,7 @@
         "uptown"
     ],
     "size": 10,
+    "checkmap": "ut4_dressingroom",
     "urt_servers": [
         {
             "host": "example.com",
