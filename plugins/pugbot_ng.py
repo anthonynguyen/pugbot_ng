@@ -1,57 +1,114 @@
-#!/usr/bin/env python
+from pyrcon import RConnection
 
-from . import config_loader
-from .command_handler import CommandHandler
-from .pug_state import PugState
-from .util import genRandomString
-from irc.buffer import LenientDecodingLineBuffer
-import irc.bot
-import random
+def genRandomString(length):
+    alpha = "abcdefghijklmnopqrstuvwxyz"
+    return "".join(random.choice(alpha) for _ in range(length))
+
+class PugbotPlugin():
+
+    def __init__(self, bot):
+        self.bot = bot
+
+    def startup(self, config):
+        if config is None:
+            quit("pugbot_ng requires a config file, " + 
+                 "make sure config/pugbot_ng.json exists in your basebot folder")
+
+        self.Q = []
+        self.votes = {}
+
+        self.maps = config["maps"]
+        self.size = config["size"]
+
+        self.servers = []
+
+        for s in config["urt_servers"]:
+            with RConnection(s["host"], s["port"], s["password"]) as urtserver:
+                self.servers.append({
+                    "active": False,
+                    "connection": urtserver
+                })
+
+        self.bot.registerEvent("user_part", self.leave_handler)
+        self.bot.registerEvent("user_quit", self.leave_handler)
+        self.bot.registerEvent("nick_change", self.nick_handler)
 
 
-class Pugbot(irc.bot.SingleServerIRCBot):
+        self.bot.registerCommand("join", self.cmd_join)
+        self.bot.registerCommand("leave", self.cmd_leave)
+        self.bot.registerCommand("status", self.cmd_status)
+        self.bot.registerCommand("maps", self.cmd_maps)
+        self.bot.registerCommand("vote", self.cmd_vote)
+        self.bot.registerCommand("votes", self.cmd_votes)
 
-    def __init__(self, state):
-        super(Pugbot, self).__init__(
-            [(state.server, state.port)],
-            state.nick, state.nick)
+        self.bot.registerCommand("forcestart", self.cmd_forcestart, True)
 
-        self.state = state
+    def shutdown(self):
+        pass
 
-        self.target = self.state.channel
-
-        # Adds a Latin-1 fallback when UTF-8 decoding doesn't work
-        irc.client.ServerConnection.buffer_class = LenientDecodingLineBuffer
-
-        self.commandHandler = CommandHandler(self)
 
     """
     #------------------------------------------#
-    #            IRC-Related Stuff             #
+    #             Command Helpers              #
     #------------------------------------------#
     """
 
-    def notice(self, nick, msg):
-        self.connection.notice(nick, msg)
+    def removeUser(self, user):
+        if user in self.Q:
+            self.Q.remove(user)
+            self.bot.say("{0} was removed from the queue".format(user))
 
-    def on_nicknameinuse(self, conn, ev):
-        conn.nick(conn.get_nickname() + "_")
+        if user in self.votes:
+            self.votes.pop(user)
 
-    def on_ping(self, conn, ev):
-        self.connection.pong(ev.target)
+    def resolveMap(self, string):
+        matches = []
 
-    def say(self, msg):
-        self.connection.privmsg(self.state.channel, msg)
+        if not string:
+            return matches
 
-    def pm(self, nick, msg):
-        self.connection.privmsg(nick, msg)
+        for m in self.maps:
+            if string in m:
+                matches.append(m)
+        return matches
 
-    def reply(self, msg):
-        self.connection.privmsg(self.target, msg)
+    def voteHelper(self, player, string):
+        mapMatches = self.resolveMap(string)
 
-    def on_welcome(self, conn, ev):
-        conn.join(self.state.channel)
-        self.new_password()
+        if not string:
+            return
+
+        if not mapMatches:
+            self.bot.reply("{0} is not a valid map".format(string))
+        elif len(mapMatches) > 1:
+            self.bot.reply(
+                "There are multiple matches for '{0}': ".format(string) +
+                ", ".join(mapMatches))
+        else:
+            self.votes[player] = mapMatches[0]
+            self.bot.say("{0} voted for {1}".format(player, mapMatches[0]))
+
+    """
+    #------------------------------------------#
+    #              Event Handlers              #
+    #------------------------------------------#
+    """
+
+    def leave_handler(self, ev):
+        self.removeUser(ev.source.nick)
+
+    def nick_handler(self, ev):
+        old = ev.source.nick
+        new = ev.target
+
+        if old in self.Q:
+            self.Q.remove(old)
+            self.Q.append(new)
+
+        if old in self.votes:
+            self.votes[new] = self.votes[old]
+            self.votes.pop(old)
+
 
     """
     #------------------------------------------#
@@ -59,99 +116,62 @@ class Pugbot(irc.bot.SingleServerIRCBot):
     #------------------------------------------#
     """
 
-    def on_privmsg(self, conn, ev):
-        self.parseChat(ev, True)
+    def cmd_join(self, issuedBy, data):
+        """.join - joins the queue"""
+        if issuedBy not in self.Q:
+            self.Q.append(issuedBy)
+            self.bot.say("{0} was added to the queue".format(issuedBy))
+        else:
+            self.bot.reply("You are already in the queue")
 
-    def on_pubmsg(self, conn, ev):
-        self.parseChat(ev)
-        if self.state.password in ev.arguments[0]:
-            self.new_password()
+        self.voteHelper(issuedBy, data)
 
-    def parseChat(self, ev, private=False):
-        if (ev.arguments[0][0] in self.state.cmdPrefixes):
-            self.commandHandler.executeCommand(ev, private)
+        if len(self.Q) == self.size:
+            self.bot.startGame()
 
-    """
-    #------------------------------------------#
-    #               Other Stuff                #
-    #------------------------------------------#
-    """
+    def cmd_leave(self, issuedBy, data):
+        """.leave - leaves the queue"""
+        if issuedBy in self.Q:
+            self.removeUser(issuedBy)
+        else:
+            self.bot.reply("You are not in the queue")
 
-    def startGame(self):
-        if len(self.state.Q) < 2:
-            self.say("A game cannot be started with fewer than 2 players.")
+    def cmd_status(self, issuedBy, data):
+        """.status - displays the status of the current queue"""
+        if len(self.Q) == 0:
+            self.bot.reply("Queue is empty: 0/{0}".format(self.size))
             return
 
-        mapVotes = list(self.state.votes.values())
+        self.bot.reply("Queue status: {0}/{1}".format(len(self.Q),
+                                                      self.size))
+        self.bot.reply(", ".join(self.Q))
 
-        if not mapVotes:
-            mapVotes = self.state.maps
+    def cmd_maps(self, issuedBy, data):
+        """.maps - list maps that are able to be voted"""
+        self.bot.reply("Available maps: " + ", ".join(self.maps))
 
-        maxVotes = max([mapVotes.count(mapname) for mapname in mapVotes])
-        mapPool = [mapname for mapname in mapVotes
-                   if mapVotes.count(mapname) == maxVotes]
+    def cmd_vote(self, issuedBy, data):
+        """.vote - vote for a map"""
+        if issuedBy not in self.Q:
+            self.bot.reply("You are not in the queue")
+        else:
+            self.voteHelper(issuedBy, data)
 
-        chosenMap = mapPool[random.randint(0, len(mapPool) - 1)]
+    def cmd_votes(self, issuedBy, data):
+        """.votes - show number of votes per map"""
 
-        captains = random.sample(self.state.Q, 2)
+        mapvotes = list(self.votes.values())
+        tallies = dict((map, mapvotes.count(map)) for map in mapvotes)
 
-        self.say("\x030,2Ding ding ding! The PUG is starting! The map is "
-                 + chosenMap)
-        self.say("\x030,2The captains are {0} and {1}!".format(
-            captains[0], captains[1]))
-        self.say("\x037Players: " + ", ".join(self.state.Q))
+        if self.votes:
+            for map in tallies:
+                self.bot.reply("{0}: {1} vote{2}".format(
+                    map, tallies[map], "" if tallies[map] == 1 else "s"))
+        else:
+            self.bot.reply("There are no current votes")
 
-        self.state.Q = []
-        self.state.votes = {}
-
-    def new_password(self):
-        self.state.password = genRandomString(5)
-
-        print("The password is: " + self.state.password)
-        self._msg_owners("The password is: " + self.state.password)
-
-    def _msg_owners(self, message):
-        for owner in self.state.owners:
-            self.pm(owner, message)
-
-    def removeUser(self, user):
-        if user in self.state.Q:
-            self.state.Q.remove(user)
-            self.say("{0} was removed from the queue".format(user))
-
-        if user in self.state.votes:
-            self.state.votes.pop(user)
-
-        if user in self.state.loggedIn:
-            self.state.loggedIn.remove(user)
-
-    def _on_nick(self, conn, ev):
-        old = ev.source.nick
-        new = ev.target
-
-        if old in self.state.Q:
-            self.state.Q.remove(old)
-            self.state.Q.append(new)
-
-        if old in self.state.votes:
-            self.state.votes[new] = self.state.votes[old]
-            self.state.votes.pop(old)
-
-        if old in self.state.loggedIn:
-            self.state.loggedIn.remove(old)
-            self.state.loggedIn.append(new)
-
-    def _on_part(self, conn, ev):
-        self.removeUser(ev.source.nick)
-
-    def _on_quit(self, conn, ev):
-        self.removeUser(ev.source.nick)
-
-
-def main():
-    state = PugState(config_loader.load_config())
-    bot = Pugbot(state)
-    bot.start()
-
-if __name__ == "__main__":
-    main()
+    def cmd_forcestart(self, issuedBy, data):
+        """.forcestart - starts the game regardless of whether there are enough
+        players or not"""
+        self.bot.say("{0} is forcing the game to start!".format(issuedBy))
+        self.startGame()

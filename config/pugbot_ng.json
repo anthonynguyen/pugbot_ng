@@ -29,7 +29,7 @@
         "turnpike",
         "uptown"
     ],
-    "size: 10,
+    "size": 10,
     "urt_servers": [
         {
             "host": "example.com",
