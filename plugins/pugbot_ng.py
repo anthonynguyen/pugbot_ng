@@ -27,9 +27,12 @@ class PugbotPlugin():
         for s in config["urt_servers"]:
             with RConnection(s["host"], s["port"], s["password"]) as urtserver:
                 self.servers.append({
-                    "active": False,
+                    "active": None,
                     "connection": urtserver
                 })
+
+        self.bot.say("[pugbot-ng] {} available servers.".format(
+            len(self.servers)))
 
         self.bot.registerEvent("user_part", self.leave_handler)
         self.bot.registerEvent("user_quit", self.leave_handler)
@@ -146,7 +149,7 @@ class PugbotPlugin():
     """
 
     def cmd_join(self, issuedBy, data):
-        """.join - joins the queue"""
+        """joins the queue"""
         if issuedBy not in self.Q:
             self.Q.append(issuedBy)
             self.bot.say("{0} was added to the queue".format(issuedBy))
@@ -159,14 +162,14 @@ class PugbotPlugin():
             self.bot.startGame()
 
     def cmd_leave(self, issuedBy, data):
-        """.leave - leaves the queue"""
+        """leaves the queue"""
         if issuedBy in self.Q:
             self.removeUser(issuedBy)
         else:
             self.bot.reply("You are not in the queue")
 
     def cmd_status(self, issuedBy, data):
-        """.status - displays the status of the current queue"""
+        """displays the status of the current queue"""
         if len(self.Q) == 0:
             self.bot.reply("Queue is empty: 0/{0}".format(self.size))
             return
@@ -176,18 +179,18 @@ class PugbotPlugin():
         self.bot.reply(", ".join(self.Q))
 
     def cmd_maps(self, issuedBy, data):
-        """.maps - list maps that are able to be voted"""
+        """lists maps that are able to be voted"""
         self.bot.reply("Available maps: " + ", ".join(self.maps))
 
     def cmd_vote(self, issuedBy, data):
-        """.vote - vote for a map"""
+        """votes for a map"""
         if issuedBy not in self.Q:
             self.bot.reply("You are not in the queue")
         else:
             self.voteHelper(issuedBy, data)
 
     def cmd_votes(self, issuedBy, data):
-        """.votes - show number of votes per map"""
+        """shows number of votes per map"""
 
         mapvotes = list(self.votes.values())
         tallies = dict((map, mapvotes.count(map)) for map in mapvotes)
@@ -200,7 +203,6 @@ class PugbotPlugin():
             self.bot.reply("There are no current votes")
 
     def cmd_forcestart(self, issuedBy, data):
-        """.forcestart - starts the game regardless of whether there are enough
-        players or not"""
+        """starts the game whether there are enough players or not"""
         self.bot.say("{0} is forcing the game to start!".format(issuedBy))
         self.startGame()
