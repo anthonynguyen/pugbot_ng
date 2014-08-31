@@ -1,0 +1,40 @@
+{
+    "maps": [
+        "abbey",
+        "algiers",
+        "austria",
+        "beijing_b3",
+        "bohemia",
+        "cambridge_fixed",
+        "casa",
+        "crossing",
+        "docks",
+        "dust2_v2",
+        "elgin",
+        "facade_b5",
+        "kingdom_rc6",
+        "mandolin",
+        "oildepot",
+        "orbital_sl",
+        "prague",
+        "ramelle",
+        "ricochet",
+        "riyadh",
+        "sanc",
+        "thingley",
+        "tohunga_b8",
+        "tohunga_b10",
+        "toxic",
+        "tunis",
+        "turnpike",
+        "uptown"
+    ],
+    "size: 10,
+    "urt_servers": [
+        {
+            "host": "example.com",
+            "port": 27960,
+            "password": "rcon_password"
+       }
+    ]
+}

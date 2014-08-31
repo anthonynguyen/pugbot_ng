@@ -1,0 +1,10 @@
+{
+    "port": 6667,
+    "owners": [
+        "owner"
+    ],
+    "nick": "pugbot-ng",
+    "server": "irc.quakenet.org",
+    "prefixes": ".",
+    "channel": "#pugbot-ng"
+}
