@@ -1,4 +1,6 @@
 import random
+import re
+import threading
 
 from pyrcon import RConnection
 
@@ -8,8 +10,30 @@ def genRandomString(length):
     return "".join(random.choice(alpha) for _ in range(length))
 
 
-class PugbotPlugin:
+class ActivePUG:
+    def __init__(self, bot, conn, players, chosenMap, checkMap):
+        self.bot = bot
+        self.conn = conn
 
+        self.players = players
+        self.chosenMap = chosenMap
+        self.checkMap = checkMap
+
+        self.checkRE = re.compile("mapname\" is:\"" + self.checkMap)
+
+        self.mainTimer = threading.Timer(1200.0, self.check_map_end)
+        self.mainTimer.start()
+
+    def check_map_end(self):
+        response = self.conn.send("mapname").strip()
+        if self.checkRE.search(response) is None:
+            t = threading.Timer(15.0, self.check_map_end)
+            t.start()
+        else:
+            self.bot.say("Map has changed, the PUG is over")
+
+
+class PugbotPlugin:
     def __init__(self, bot):
         self.bot = bot
 
@@ -37,8 +61,8 @@ class PugbotPlugin:
                     "rcon_password": s["password"]
                 })
 
-        self.bot.say("[pugbot-ng] {} available servers.".format(
-            len(self.servers)))
+        # self.bot.say("[pugbot-ng] {} available servers.".format(
+        #     len(self.servers)))
 
         self.bot.registerEvent("user_part", self.leave_handler)
         self.bot.registerEvent("user_quit", self.leave_handler)
@@ -61,7 +85,7 @@ class PugbotPlugin:
     #             Command Helpers              #
     #------------------------------------------#
     """
-  
+
     def startGame(self):
         if len(self.Q) < 2:
             self.bot.say("A game cannot be started with fewer than 2 players.")
@@ -91,7 +115,7 @@ class PugbotPlugin:
             if not s["active"]:
                 mine = n
                 s["active"] = True
-        
+
         if mine == -1:
             self.bot.say("No servers available, what a shame... :(")
             self.Q = []
@@ -99,21 +123,25 @@ class PugbotPlugin:
             return
 
         s = self.servers[mine]
-        spass = genRandomString(5)
-        
         s["connection"].connect()
+
+        active = ActivePUG(self.bot, s["connection"], self.Q,
+                           chosenMap, self.checkmap)
+
+        spass = genRandomString(5)
         s["connection"].send("set g_password " + spass)
+
         s["connection"].send("exec uzl_ts.cfg")
         s["connection"].send("map " + chosenMap)
         s["connection"].send("set g_nextmap " + self.checkmap)
 
         captainString = "Captains are " + " and ".join(captains)
         s["connection"].send("set sv_joinmessage \"{}\"".format(captainString))
-        for user in self.Q:
-            self.bot.pm(user, 
-                ("The PUG is starting: /connect {0}:{1};" + 
-                "password {2}").format(s["host"], s["port"], spass))
 
+        for user in self.Q:
+            self.bot.pm(user,
+                        ("The PUG is starting: /connect {0}:{1};" +
+                         "password {2}").format(s["host"], s["port"], spass))
 
         self.Q = []
         self.votes = {}
