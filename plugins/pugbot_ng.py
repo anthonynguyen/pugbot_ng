@@ -2,19 +2,21 @@ import random
 
 from pyrcon import RConnection
 
+
 def genRandomString(length):
     alpha = "abcdefghijklmnopqrstuvwxyz"
     return "".join(random.choice(alpha) for _ in range(length))
 
-class PugbotPlugin():
+
+class PugbotPlugin:
 
     def __init__(self, bot):
         self.bot = bot
 
     def startup(self, config):
         if config is None:
-            quit("pugbot_ng requires a config file, " + 
-                 "make sure config/pugbot_ng.json exists in your basebot folder")
+            quit("pugbot_ng requires a config file, make sure" +
+                 "config/pugbot_ng.json exists in your basebot folder")
 
         self.Q = []
         self.votes = {}
@@ -38,7 +40,6 @@ class PugbotPlugin():
         self.bot.registerEvent("user_quit", self.leave_handler)
         self.bot.registerEvent("nick_change", self.nick_handler)
 
-
         self.bot.registerCommand("join", self.cmd_join)
         self.bot.registerCommand("leave", self.cmd_leave)
         self.bot.registerCommand("status", self.cmd_status)
@@ -50,7 +51,6 @@ class PugbotPlugin():
 
     def shutdown(self):
         pass
-
 
     """
     #------------------------------------------#
@@ -77,7 +77,7 @@ class PugbotPlugin():
         captains = random.sample(self.Q, 2)
 
         self.bot.say("\x030,2Ding ding ding! The PUG is starting! The map is "
-                 + chosenMap)
+                     + chosenMap)
         self.bot.say("\x030,2The captains are {0} and {1}!".format(
             captains[0], captains[1]))
         self.bot.say("\x037Players: " + ", ".join(self.Q))
@@ -140,7 +140,6 @@ class PugbotPlugin():
         if old in self.votes:
             self.votes[new] = self.votes[old]
             self.votes.pop(old)
-
 
     """
     #------------------------------------------#
