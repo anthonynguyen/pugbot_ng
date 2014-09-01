@@ -188,7 +188,7 @@ class PugbotPlugin:
 
         if string1 in string2:
             return True
-        
+
         return False
 
     def resolve_map(self, string):
@@ -295,10 +295,10 @@ class PugbotPlugin:
         mapvotes = list(self.votes.values())
         tallies = dict((_map, mapvotes.count(_map)) for _map in mapvotes)
 
-        voteStrings = ["{0} ({1}): ".format(_map, tallies[_map]) 
+        voteStrings = ["{0} ({1}): ".format(_map, tallies[_map])
                        for _map in tallies]
 
-        longLen = len(max(voteStrings, key = len))
+        longLen = len(max(voteStrings, key=len))
         voteStrings = ["{0} ({1}): ".format(_map, tallies[_map])
                                     .ljust(longLen + 1) + "+" * tallies[_map]
                        for _map in tallies]
