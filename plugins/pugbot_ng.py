@@ -18,8 +18,11 @@ class ActivePUG:
         self.server = server
 
         self.players = players
+        self.size = len(self.players)
         self.chosenMap = chosenMap
         self.checkMap = checkMap
+
+        self.abortVotes = []
 
         self.checkRE = re.compile("mapname\" is:\"" + self.checkMap)
 
@@ -30,16 +33,20 @@ class ActivePUG:
         self.pugbot.bot.say("The following players are now allowed " +
                             "to queue up: " + ", ".join(self.players))
 
-    def end(self):
+    def end(self, abort=False):
         self.active = False
+
         self.server["active"] = False
+        self.server["connection"].send("map " + self.checkMap)
+
+        self.checkTimer.cancel()
+
         self.writeToDatabase()
         self.pugbot.cleanup_active()
 
     def abort(self):
-        self.checkTimer.cancel()
-        self.server["connection"].send("map " + self.checkMap)
-        self.end()
+        self.pugbot.bot.say("PUG has been aborted")
+        self.end(True)
 
     def check_map_end(self):
         response = self.server["connection"].send("mapname").strip()
@@ -91,6 +98,7 @@ class PugbotPlugin:
         self.bot.registerCommand("maps", self.cmd_maps)
         self.bot.registerCommand("vote", self.cmd_vote)
         self.bot.registerCommand("votes", self.cmd_votes)
+        self.bot.registerCommand("abort", self.cmd_abort)
 
         self.bot.registerCommand("forcestart", self.cmd_forcestart, True)
 
@@ -306,6 +314,24 @@ class PugbotPlugin:
         for vs in voteStrings:
             self.bot.reply(vs)
 
+    def cmd_abort(self, issuedBy, data):
+        """votes to abort a currently-running PUG"""
+        for pug in self.active:
+            if issuedBy in pug.players:
+                target = pug.size // 2 + pug.size % 2
+                if issuedBy in pug.abortVotes:
+                    self.bot.reply("You have already voted to abort your PUG.")
+                else:
+                    pug.abortVotes.append(issuedBy)
+                    self.bot.say("{} has voted to abort the pug ({}/{})"
+                                 .format(issuedBy,
+                                         len(pug.abortVotes),
+                                         target))
+
+                # Theoretically should never be greater
+                if len(pug.abortVotes) >= target:
+                    pug.abort()
+    
     def cmd_forcestart(self, issuedBy, data):
         """starts the game whether there are enough players or not"""
         self.bot.say("{0} is forcing the game to start!".format(issuedBy))
