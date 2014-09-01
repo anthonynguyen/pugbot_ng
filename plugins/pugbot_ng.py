@@ -179,6 +179,18 @@ class PugbotPlugin:
         if user in self.votes:
             self.votes.pop(user)
 
+    def fuzzy_match(self, string1, string2):
+        string1 = string1.lower()
+        string2 = string2.lower()
+
+        string1 = re.sub("[_ -]", "", string1)
+        string2 = re.sub("[_ -]", "", string2)
+
+        if string1 in string2:
+            return True
+        
+        return False
+
     def resolve_map(self, string):
         matches = []
 
@@ -186,7 +198,7 @@ class PugbotPlugin:
             return matches
 
         for m in self.maps:
-            if string in m:
+            if self.fuzzy_match(string, m):
                 matches.append(m)
         return matches
 
