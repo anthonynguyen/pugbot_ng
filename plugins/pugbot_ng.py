@@ -103,7 +103,7 @@ class PugbotPlugin:
     #------------------------------------------#
     """
 
-    def startGame(self):
+    def start_game(self):
         if len(self.Q) < 2:
             self.bot.say("A game cannot be started with fewer than 2 players.")
             return
@@ -171,7 +171,7 @@ class PugbotPlugin:
         if remove > -1:
             del[remove]
 
-    def removeUser(self, user):
+    def remove_user(self, user):
         if user in self.Q:
             self.Q.remove(user)
             self.bot.say("{0} was removed from the queue".format(user))
@@ -179,7 +179,7 @@ class PugbotPlugin:
         if user in self.votes:
             self.votes.pop(user)
 
-    def resolveMap(self, string):
+    def resolve_map(self, string):
         matches = []
 
         if not string:
@@ -190,8 +190,8 @@ class PugbotPlugin:
                 matches.append(m)
         return matches
 
-    def voteHelper(self, player, string):
-        mapMatches = self.resolveMap(string)
+    def vote_helper(self, player, string):
+        mapMatches = self.resolve_map(string)
 
         if not string:
             return
@@ -213,7 +213,7 @@ class PugbotPlugin:
     """
 
     def leave_handler(self, ev):
-        self.removeUser(ev.source.nick)
+        self.remove_user(ev.source.nick)
 
     def nick_handler(self, ev):
         old = ev.source.nick
@@ -241,15 +241,15 @@ class PugbotPlugin:
         else:
             self.bot.reply("You are already in the queue")
 
-        self.voteHelper(issuedBy, data)
+        self.vote_helper(issuedBy, data)
 
         if len(self.Q) == self.size:
-            self.startGame()
+            self.start_game()
 
     def cmd_leave(self, issuedBy, data):
         """leaves the queue"""
         if issuedBy in self.Q:
-            self.removeUser(issuedBy)
+            self.remove_user(issuedBy)
         else:
             self.bot.reply("You are not in the queue")
 
@@ -272,7 +272,7 @@ class PugbotPlugin:
         if issuedBy not in self.Q:
             self.bot.reply("You are not in the queue")
         else:
-            self.voteHelper(issuedBy, data)
+            self.vote_helper(issuedBy, data)
 
     def cmd_votes(self, issuedBy, data):
         """shows number of votes per map"""
@@ -290,4 +290,4 @@ class PugbotPlugin:
     def cmd_forcestart(self, issuedBy, data):
         """starts the game whether there are enough players or not"""
         self.bot.say("{0} is forcing the game to start!".format(issuedBy))
-        self.startGame()
+        self.start_game()
