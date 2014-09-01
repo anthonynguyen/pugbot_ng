@@ -103,7 +103,8 @@ class PugbotPlugin:
         self.bot.registerCommand("forcestart", self.cmd_forcestart, True)
 
     def shutdown(self):
-        pass
+        for pug in self.active:
+            pug.abort()
 
     """
     #------------------------------------------#
@@ -331,7 +332,7 @@ class PugbotPlugin:
                 # Theoretically should never be greater
                 if len(pug.abortVotes) >= target:
                     pug.abort()
-    
+
     def cmd_forcestart(self, issuedBy, data):
         """starts the game whether there are enough players or not"""
         self.bot.say("{0} is forcing the game to start!".format(issuedBy))
