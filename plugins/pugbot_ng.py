@@ -34,6 +34,7 @@ class ActivePUG:
         self.active = False
         self.server["active"] = False
         self.writeToDatabase()
+        self.pugbot.cleanup_active()
 
     def abort(self):
         self.checkTimer.cancel()
@@ -160,6 +161,15 @@ class PugbotPlugin:
 
         self.Q = []
         self.votes = {}
+
+    def cleanup_active(self):
+        remove = -1
+        for index, pug in enumerate(self.active):
+            if not pug.active:
+                remove = index
+
+        if remove > -1:
+            del[remove]
 
     def removeUser(self, user):
         if user in self.Q:
