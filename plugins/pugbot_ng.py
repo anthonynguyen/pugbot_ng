@@ -11,9 +11,11 @@ def genRandomString(length):
 
 
 class ActivePUG:
-    def __init__(self, bot, conn, players, chosenMap, checkMap):
-        self.bot = bot
-        self.conn = conn
+    def __init__(self, pugbot, server, players, chosenMap, checkMap):
+        self.active = True
+
+        self.pugbot = pugbot
+        self.server = server
 
         self.players = players
         self.chosenMap = chosenMap
@@ -21,16 +23,31 @@ class ActivePUG:
 
         self.checkRE = re.compile("mapname\" is:\"" + self.checkMap)
 
-        self.mainTimer = threading.Timer(1200.0, self.check_map_end)
-        self.mainTimer.start()
+        self.checkTimer = threading.Timer(10.0, self.check_map_end)
+        self.checkTimer.start()
+
+    def writeToDatabase(self):
+        self.pugbot.bot.say("The following players are now allowed " +
+                            "to queue up: " + ", ".join(self.players))
+
+    def end(self):
+        self.active = False
+        self.server["active"] = False
+        self.writeToDatabase()
+
+    def abort(self):
+        self.checkTimer.cancel()
+        self.server["connection"].send("map " + self.checkMap)
+        self.end()
 
     def check_map_end(self):
-        response = self.conn.send("mapname").strip()
+        response = self.server["connection"].send("mapname").strip()
         if self.checkRE.search(response) is None:
-            t = threading.Timer(15.0, self.check_map_end)
-            t.start()
+            self.checkTimer = threading.Timer(10.0, self.check_map_end)
+            self.checkTimer.start()
         else:
-            self.bot.say("Map has changed, the PUG is over")
+            self.pugbot.bot.say("Map has changed, the PUG is over")
+            self.end()
 
 
 class PugbotPlugin:
@@ -44,22 +61,21 @@ class PugbotPlugin:
 
         self.Q = []
         self.votes = {}
+        self.active = []
 
         self.maps = config["maps"]
         self.size = config["size"]
         self.checkmap = config["checkmap"]
 
         self.servers = []
-
         for s in config["urt_servers"]:
-            with RConnection(s["host"], s["port"], s["password"]) as urtserver:
-                self.servers.append({
-                    "active": None,
-                    "connection": urtserver,
-                    "host": s["host"],
-                    "port": s["port"],
-                    "rcon_password": s["password"]
-                })
+            self.servers.append({
+                "active": None,
+                "connection": RConnection(s["host"], s["port"], s["password"]),
+                "host": s["host"],
+                "port": s["port"],
+                "rcon_password": s["password"]
+            })
 
         # self.bot.say("[pugbot-ng] {} available servers.".format(
         #     len(self.servers)))
@@ -112,7 +128,7 @@ class PugbotPlugin:
 
         mine = -1
         for n, s in enumerate(self.servers):
-            if not s["active"]:
+            if not s["active"] and s["connection"].test():
                 mine = n
                 s["active"] = True
 
@@ -123,10 +139,9 @@ class PugbotPlugin:
             return
 
         s = self.servers[mine]
-        s["connection"].connect()
 
-        active = ActivePUG(self.bot, s["connection"], self.Q,
-                           chosenMap, self.checkmap)
+        thisPUG = ActivePUG(self, s, self.Q, chosenMap, self.checkmap)
+        self.active.append(thisPUG)
 
         spass = genRandomString(5)
         s["connection"].send("set g_password " + spass)
