@@ -288,16 +288,23 @@ class PugbotPlugin:
 
     def cmd_votes(self, issuedBy, data):
         """shows number of votes per map"""
+        if not self.votes:
+            self.bot.reply("There are no current votes")
+            return
 
         mapvotes = list(self.votes.values())
-        tallies = dict((map, mapvotes.count(map)) for map in mapvotes)
+        tallies = dict((_map, mapvotes.count(_map)) for _map in mapvotes)
 
-        if self.votes:
-            for map in tallies:
-                self.bot.reply("{0}: {1} vote{2}".format(
-                    map, tallies[map], "" if tallies[map] == 1 else "s"))
-        else:
-            self.bot.reply("There are no current votes")
+        voteStrings = ["{0} ({1}): ".format(_map, tallies[_map]) 
+                       for _map in tallies]
+
+        longLen = len(max(voteStrings, key = len))
+        voteStrings = ["{0} ({1}): ".format(_map, tallies[_map])
+                                    .ljust(longLen + 1) + "+" * tallies[_map]
+                       for _map in tallies]
+
+        for vs in voteStrings:
+            self.bot.reply(vs)
 
     def cmd_forcestart(self, issuedBy, data):
         """starts the game whether there are enough players or not"""
