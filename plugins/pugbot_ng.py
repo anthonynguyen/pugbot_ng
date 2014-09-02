@@ -2,6 +2,7 @@ import random
 import re
 import sqlite3
 import threading
+import time
 
 from pyrcon import RConnection
 
@@ -64,10 +65,19 @@ class PugbotPlugin:
             quit("pugbot_ng requires a config file, make sure" +
                  "config/pugbot_ng.json exists in your basebot folder")
 
-        #self.database = self.bot.getCursor()
-
-        self.database = sqlite3.connect("database/pugbot.db")
+        self.database = self.bot.getDatabase()
         self.cursor = self.database.cursor()
+
+        self.cursor.execute("""
+        CREATE TABLE IF NOT EXISTS `reports` (
+            `id` INTEGER NULL DEFAULT NULL,
+            `date` TEXT NULL DEFAULT NULL,
+            `reportedby` TEXT NULL DEFAULT NULL,
+            `player` TEXT NULL DEFAULT NULL,
+            `reason` TEXT NULL DEFAULT NULL,
+            PRIMARY KEY (`id`)
+        );
+        """)
 
         self.Q = []
         self.votes = {}
@@ -327,10 +337,8 @@ class PugbotPlugin:
         if not data:
             return
 
-        self.cursor.execute("CREATE TABLE IF NOT EXISTS reports(reportedby TEXT, player TEXT, reason TEXT)")
-
         data = data.split(" ")
-        self.cursor.execute("INSERT INTO reports(reportedby, player, reason) VALUES (?, ?, ?)", (issuedBy, "".join(data[0]), " ".join(data[1:])))
+        self.cursor.execute("INSERT INTO reports(date, reportedby, player, reason) VALUES (?, ?, ?, ?)", (time.time(), issuedBy, "".join(data[0]), " ".join(data[1:])))
         self.database.commit()
 
         self.bot.reply("You reported \x02{}\x02 for '\x02{}\x02'".format(data[0], " ".join(data[1:])))
