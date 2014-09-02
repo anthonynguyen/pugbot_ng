@@ -134,6 +134,7 @@ class PugbotPlugin:
         self.bot.registerCommand("forcestart", self.cmd_forcestart, True)
 
     def shutdown(self):
+        self.database.close()
         for pug in self.active:
             pug.abort()
 
@@ -217,10 +218,14 @@ class PugbotPlugin:
         self.active = [pug for pug in self.active if pug.active]
 
     def writeToDatabase(self, pug, aborted):
-        self.cursor.execute(
+        database = sqlite3.connect(self.bot.basepath +
+                                   "/database/pugbot_ng.sqlite")
+        cursor = database.cursor()
+        cursor.execute(
             "UPDATE pugs SET end = ?, status = ? WHERE id = ?",
             (int(time.time()), "aborted" if aborted else "ended", pug.pugID))
-        self.database.commit()
+        database.commit()
+        database.close()
 
         self.bot.say("The following players are now allowed " +
                      "to queue up: " + ", ".join(pug.players))
