@@ -14,15 +14,18 @@ def genRandomString(length):
 
 
 class ActivePUG:
-    def __init__(self, pugbot, server, players, chosenMap, checkMap):
+    def __init__(self, pugID, now, pugbot, server, players, _map, checkMap):
         self.active = True
+
+        self.pugID = pugID
+        self.startTime = now
 
         self.pugbot = pugbot
         self.server = server
 
         self.players = players
         self.size = len(self.players)
-        self.chosenMap = chosenMap
+        self.chosenMap = _map
         self.checkMap = checkMap
 
         self.abortVotes = []
@@ -40,7 +43,7 @@ class ActivePUG:
 
         self.checkTimer.cancel()
 
-        self.pugbot.writeToDatabase(self)
+        self.pugbot.writeToDatabase(self, abort)
         self.pugbot.cleanup_active()
 
     def abort(self):
@@ -79,6 +82,19 @@ class PugbotPlugin:
             PRIMARY KEY (`id`)
         );
         """)
+        self.cursor.execute("""
+        CREATE TABLE IF NOT EXISTS `pugs` (
+            `id` INTEGER NULL DEFAULT NULL,
+            `start` INTEGER NULL DEFAULT NULL,
+            `end` INTEGER NULL DEFAULT NULL,
+            `map` TEXT NULL DEFAULT NULL,
+            `players` TEXT NULL DEFAULT NULL,
+            `captains` TEXT NULL DEFAULT NULL,
+            `status` TEXT NULL DEFAULT NULL,
+            PRIMARY KEY (`id`)
+        );
+        """)
+        self.database.commit()
 
         self.Q = []
         self.votes = {}
@@ -165,7 +181,18 @@ class PugbotPlugin:
 
         s = self.servers[mine]
 
-        thisPUG = ActivePUG(self, s, self.Q, chosenMap, self.checkmap)
+        now = int(time.time())
+
+        self.cursor.execute(
+            "INSERT INTO pugs (start, end, map, players, captains, status) \
+            VALUES(?, -1, ?, ?, ?, 'in progress')",
+            (now, chosenMap, ", ".join(self.Q), ", ".join(captains)))
+        self.database.commit()
+
+        pugID = self.cursor.lastrowid
+
+        thisPUG = ActivePUG(pugID, now, self, s, self.Q,
+                            chosenMap, self.checkmap)
         self.active.append(thisPUG)
 
         spass = genRandomString(5)
@@ -195,9 +222,14 @@ class PugbotPlugin:
         if remove > -1:
             del self.active[remove]
 
-    def writeToDatabase(self, activePUG):
+    def writeToDatabase(self, pug, aborted):
+        self.cursor.execute(
+            "UPDATE pugs SET end = ?, status = ? WHERE id = ?",
+            (int(time.time()), "aborted" if aborted else "ended", pug.pugID))
+        self.database.commit()
+
         self.bot.say("The following players are now allowed " +
-                     "to queue up: " + ", ".join(activePUG.players))
+                     "to queue up: " + ", ".join(pug.players))
 
     def remove_user(self, user):
         if user in self.Q:
@@ -349,7 +381,7 @@ class PugbotPlugin:
 
         dayAgo = time.time() - 86400
         self.cursor.execute(
-            "SELECT * FROM `reports` WHERE `reportedBy` == '{}' AND `date` > {}"
+            "SELECT * FROM reports WHERE reportedBy == '{}' AND date > {}"
             .format(issuedBy, dayAgo))
 
         result = self.cursor.fetchall()
