@@ -1,3 +1,4 @@
+import datetime
 import random
 import re
 import sqlite3
@@ -113,6 +114,7 @@ class PugbotPlugin:
         self.bot.registerCommand("abort", self.cmd_abort)
         self.bot.registerCommand("report", self.cmd_report)
 
+        self.bot.registerCommand("reports", self.cmd_reports, True)
         self.bot.registerCommand("forcestart", self.cmd_forcestart, True)
 
     def shutdown(self):
@@ -244,6 +246,9 @@ class PugbotPlugin:
             self.votes[player] = mapMatches[0]
             self.bot.say("{} voted for {}".format(player, mapMatches[0]))
 
+    def time_string(self, time):
+        return datetime.datetime.fromtimestamp(int(float(time))).strftime("%Y-%m-%d %H:%M")
+
     """
     #------------------------------------------#
     #              Event Handlers              #
@@ -360,6 +365,17 @@ class PugbotPlugin:
                 # Theoretically should never be greater
                     if len(pug.abortVotes) >= target:
                         pug.abort()
+
+    def cmd_reports(self, issuedBy, data):
+        """- lists the last 10 reports"""
+        reports = self.cursor.execute("""
+            SELECT * FROM (
+                SELECT * FROM `reports` ORDER BY id DESC LIMIT 10
+            ) ORDER BY id ASC;
+        """)
+
+        for r in reports:
+            self.bot.reply("#{} [{}]: {} reported {} for {}".format(r[0], self.time_string(r[1]), r[2], r[3], r[4]))
 
     def cmd_forcestart(self, issuedBy, data):
         """- starts the game whether there are enough players or not"""
