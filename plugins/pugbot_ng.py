@@ -43,11 +43,17 @@ class ActivePUG:
 
         self.checkTimer.cancel()
 
-        self.pugbot.writeToDatabase(self, abort)
+        self.pugbot.write_to_database(self, abort)
         self.pugbot.cleanup_active()
 
+        if abort:
+            self.pugbot.bot.say("\x030,7 PUG #{} has been aborted! "
+                                .format(self.pugID))
+        else:
+            self.pugbot.bot.say("\x030,4 PUG #{} has ended! "
+                                .format(self.pugID))
+
     def abort(self):
-        self.pugbot.bot.say("PUG has been aborted")
         self.end(True)
 
     def check_map_end(self):
@@ -56,7 +62,6 @@ class ActivePUG:
             self.checkTimer = threading.Timer(10.0, self.check_map_end)
             self.checkTimer.start()
         else:
-            self.pugbot.bot.say("Map has changed, the PUG is over")
             self.end()
 
 
@@ -161,13 +166,6 @@ class PugbotPlugin:
         chosenMap = mapPool[random.randint(0, len(mapPool) - 1)]
 
         captains = random.sample(self.Q, 2)
-
-        self.bot.say("\x030,2Ding ding ding! The PUG is starting! The map is "
-                     + chosenMap)
-        self.bot.say("\x030,2The captains are {} and {}!".format(
-            captains[0], captains[1]))
-        self.bot.say("\x037Players: " + ", ".join(self.Q))
-
         mine = -1
         for n, s in enumerate(self.servers):
             if not s["active"] and s["connection"].test():
@@ -191,6 +189,13 @@ class PugbotPlugin:
         self.database.commit()
 
         pugID = self.cursor.lastrowid
+
+        self.bot.say(
+            "\x030,3 Ding ding ding! PUG #{} is starting! The map is {} "
+            .format(pugID, chosenMap))
+        self.bot.say("\x030,3 The captains are {} and {}! ".format(
+            captains[0], captains[1]))
+        self.bot.say("\x037 Players: " + ", ".join(self.Q))
 
         thisPUG = ActivePUG(pugID, now, self, s, self.Q,
                             chosenMap, self.checkmap)
@@ -217,7 +222,7 @@ class PugbotPlugin:
     def cleanup_active(self):
         self.active = [pug for pug in self.active if pug.active]
 
-    def writeToDatabase(self, pug, aborted):
+    def write_to_database(self, pug, aborted):
         database = sqlite3.connect(self.bot.basepath +
                                    "/database/pugbot_ng.sqlite")
         cursor = database.cursor()
@@ -227,13 +232,11 @@ class PugbotPlugin:
         database.commit()
         database.close()
 
-        self.bot.say("The following players are now allowed " +
-                     "to queue up: " + ", ".join(pug.players))
-
     def remove_user(self, user):
         if user in self.Q:
             self.Q.remove(user)
-            self.bot.say("{} was removed from the queue".format(user))
+            self.bot.say("{} was removed from the queue ({}/{})"
+                         .format(user, len(self.Q), self.size))
 
         if user in self.votes:
             self.votes.pop(user)
@@ -312,13 +315,14 @@ class PugbotPlugin:
         """- joins the queue"""
         for pug in self.active:
             if issuedBy in pug.players:
-                self.bot.reply("You are already in an active PUG, please " + 
+                self.bot.reply("You are already in an active PUG, please " +
                                "go finish your game before joining another")
                 return
 
         if issuedBy not in self.Q:
             self.Q.append(issuedBy)
-            self.bot.say("{} was added to the queue".format(issuedBy))
+            self.bot.say("{} joined the queue ({}/{})"
+                         .format(issuedBy, len(self.Q), self.size))
         else:
             self.bot.reply("You are already in the queue")
 
