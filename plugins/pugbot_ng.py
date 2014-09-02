@@ -311,6 +311,12 @@ class PugbotPlugin:
 
     def cmd_join(self, issuedBy, data):
         """- joins the queue"""
+        for pug in self.active:
+            if issuedBy in pug.players:
+                self.bot.reply("You are already in an active PUG, please " + 
+                               "go finish your game before joining another")
+                return
+
         if issuedBy not in self.Q:
             self.Q.append(issuedBy)
             self.bot.say("{} was added to the queue".format(issuedBy))
