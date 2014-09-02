@@ -197,7 +197,7 @@ class PugbotPlugin:
 
     def writeToDatabase(self, activePUG):
         self.bot.say("The following players are now allowed " +
-                            "to queue up: " + ", ".join(activePUG.players))
+                     "to queue up: " + ", ".join(activePUG.players))
 
     def remove_user(self, user):
         if user in self.Q:
@@ -247,7 +247,8 @@ class PugbotPlugin:
             self.bot.say("{} voted for {}".format(player, mapMatches[0]))
 
     def time_string(self, time):
-        return datetime.datetime.fromtimestamp(int(float(time))).strftime("%Y-%m-%d %H:%M")
+        return datetime.datetime.fromtimestamp(
+            int(float(time))).strftime("%Y-%m-%d %H:%M")
 
     """
     #------------------------------------------#
@@ -303,7 +304,7 @@ class PugbotPlugin:
             return
 
         self.bot.reply("Queue status: {}/{}".format(len(self.Q),
-                                                      self.size))
+                                                    self.size))
         self.bot.reply(", ".join(self.Q))
 
     def cmd_maps(self, issuedBy, data):
@@ -331,7 +332,7 @@ class PugbotPlugin:
 
         longLen = len(max(voteStrings, key=len))
         voteStrings = ["{} ({}): ".format(_map, tallies[_map])
-                                    .ljust(longLen + 1) + "+" * tallies[_map]
+                       .ljust(longLen + 1) + "+" * tallies[_map]
                        for _map in tallies]
 
         for vs in voteStrings:
@@ -343,10 +344,14 @@ class PugbotPlugin:
             return
 
         data = data.split(" ")
-        self.cursor.execute("INSERT INTO reports(date, reportedby, player, reason) VALUES (?, ?, ?, ?)", (time.time(), issuedBy, "".join(data[0]), " ".join(data[1:])))
+        self.cursor.execute(
+            "INSERT INTO reports(date, reportedby, player, reason) \
+            VALUES (?, ?, ?, ?)",
+            (time.time(), issuedBy, "".join(data[0]), " ".join(data[1:])))
         self.database.commit()
 
-        self.bot.reply("You reported \x02{}\x02 for '\x02{}\x02'".format(data[0], " ".join(data[1:])))
+        self.bot.reply("You reported \x02{}\x02 for '\x02{}\x02'"
+                       .format(data[0], " ".join(data[1:])))
 
     def cmd_abort(self, issuedBy, data):
         """- votes to abort a currently-running PUG"""
@@ -375,7 +380,9 @@ class PugbotPlugin:
         """)
 
         for r in reports:
-            self.bot.reply("#{} [{}]: {} reported {} for {}".format(r[0], self.time_string(r[1]), r[2], r[3], r[4]))
+            self.bot.reply(
+                "#{} [{}]: {} reported {} for {}"
+                .format(r[0], self.time_string(r[1]), r[2], r[3], r[4]))
 
     def cmd_forcestart(self, issuedBy, data):
         """- starts the game whether there are enough players or not"""
