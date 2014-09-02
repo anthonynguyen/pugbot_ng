@@ -15,9 +15,6 @@ pugbot-ng = pugbot next gen
 Commands:
 
 * ``help``
-* ``plzdie``
-* ``forcestart``
-* ``login``
 * ``join`` or ``join <mapname>``
 * ``leave``
 * ``status``
@@ -25,6 +22,13 @@ Commands:
 * ``vote <mapname>``
 * ``votes``
 * ``abort``
+* ``report``
+* ``login``
+
+Admin commands:
+
+* ``reports``
+* ``forcestart``
 
 Installation
 ------------
