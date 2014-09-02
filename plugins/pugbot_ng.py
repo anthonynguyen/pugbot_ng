@@ -72,7 +72,7 @@ class PugbotPlugin:
         self.cursor.execute("""
         CREATE TABLE IF NOT EXISTS `reports` (
             `id` INTEGER NULL DEFAULT NULL,
-            `date` TEXT NULL DEFAULT NULL,
+            `date` INTEGER NULL DEFAULT NULL,
             `reportedby` TEXT NULL DEFAULT NULL,
             `player` TEXT NULL DEFAULT NULL,
             `reason` TEXT NULL DEFAULT NULL,
@@ -344,10 +344,33 @@ class PugbotPlugin:
             return
 
         data = data.split(" ")
+        player = data[0].lower()
+        reason = " ".join(data[1:])
+
+        dayAgo = time.time() - 86400
+        self.cursor.execute(
+            "SELECT * FROM `reports` WHERE `reportedBy` == '{}' AND `date` > {}"
+            .format(issuedBy, dayAgo))
+
+        result = self.cursor.fetchall()
+        playerCount = 0
+
+        for row in result:
+            if row[3] == player:
+                playerCount += 1
+
+        if len(result) > 2:
+            self.bot.reply("You cannot report more than three people per day")
+            return
+
+        if playerCount:
+            self.bot.reply("You cannot report the same person twice per day")
+            return
+
         self.cursor.execute(
             "INSERT INTO reports(date, reportedby, player, reason) \
             VALUES (?, ?, ?, ?)",
-            (time.time(), issuedBy, "".join(data[0]), " ".join(data[1:])))
+            (int(time.time()), issuedBy, player, reason))
         self.database.commit()
 
         self.bot.reply("You reported \x02{}\x02 for '\x02{}\x02'"
