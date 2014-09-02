@@ -33,7 +33,7 @@ To install the git version:
 
 1. ``pip install basebot``
 2. ``git clone http://github.com/clearskies/pugbot_ng.git``
-4. ``basebot ./pugbot_ng``
+3. ``basebot ./pugbot_ng``
 
 Configuration
 -------------
