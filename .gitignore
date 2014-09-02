@@ -55,4 +55,4 @@ env/
 *.swp
 config.json
 config/pugbot_ng.json
-
+database/*
