@@ -214,13 +214,7 @@ class PugbotPlugin:
         self.votes = {}
 
     def cleanup_active(self):
-        remove = -1
-        for index, pug in enumerate(self.active):
-            if not pug.active:
-                remove = index
-
-        if remove > -1:
-            del self.active[remove]
+        self.active = [pug for pug in self.active if pug.active]
 
     def writeToDatabase(self, pug, aborted):
         self.cursor.execute(
