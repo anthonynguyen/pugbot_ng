@@ -1,5 +1,6 @@
 import random
 import re
+import sqlite3
 import threading
 
 from pyrcon import RConnection
@@ -29,10 +30,6 @@ class ActivePUG:
         self.checkTimer = threading.Timer(10.0, self.check_map_end)
         self.checkTimer.start()
 
-    def writeToDatabase(self):
-        self.pugbot.bot.say("The following players are now allowed " +
-                            "to queue up: " + ", ".join(self.players))
-
     def end(self, abort=False):
         self.active = False
 
@@ -41,7 +38,7 @@ class ActivePUG:
 
         self.checkTimer.cancel()
 
-        self.writeToDatabase()
+        self.pugbot.writeToDatabase(self)
         self.pugbot.cleanup_active()
 
     def abort(self):
@@ -66,6 +63,8 @@ class PugbotPlugin:
         if config is None:
             quit("pugbot_ng requires a config file, make sure" +
                  "config/pugbot_ng.json exists in your basebot folder")
+
+        self.database = self.bot.getCursor()
 
         self.Q = []
         self.votes = {}
@@ -179,6 +178,10 @@ class PugbotPlugin:
 
         if remove > -1:
             del[remove]
+
+    def writeToDatabase(self, activePUG):
+        self.bot.say("The following players are now allowed " +
+                            "to queue up: " + ", ".join(activePUG.players))
 
     def remove_user(self, user):
         if user in self.Q:
