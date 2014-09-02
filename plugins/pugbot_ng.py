@@ -372,12 +372,17 @@ class PugbotPlugin:
                         pug.abort()
 
     def cmd_reports(self, issuedBy, data):
-        """- lists the last 10 reports"""
+        """[number] - lists the last n reports"""
+        try:
+            n = int(data)
+        except:
+            n = 10
+
         reports = self.cursor.execute("""
             SELECT * FROM (
-                SELECT * FROM `reports` ORDER BY id DESC LIMIT 10
+                SELECT * FROM `reports` ORDER BY id DESC LIMIT {}
             ) ORDER BY id ASC;
-        """)
+        """.format(n))
 
         for r in reports:
             self.bot.pm(
