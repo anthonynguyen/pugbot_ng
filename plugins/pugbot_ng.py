@@ -380,7 +380,8 @@ class PugbotPlugin:
         """)
 
         for r in reports:
-            self.bot.reply(
+            self.bot.pm(
+                issuedBy,
                 "#{} [{}]: {} reported {} for {}"
                 .format(r[0], self.time_string(r[1]), r[2], r[3], r[4]))
 
