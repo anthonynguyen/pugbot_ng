@@ -64,7 +64,10 @@ class PugbotPlugin:
             quit("pugbot_ng requires a config file, make sure" +
                  "config/pugbot_ng.json exists in your basebot folder")
 
-        self.database = self.bot.getCursor()
+        #self.database = self.bot.getCursor()
+
+        self.database = sqlite3.connect("database/pugbot.db")
+        self.cursor = self.database.cursor()
 
         self.Q = []
         self.votes = {}
@@ -98,6 +101,7 @@ class PugbotPlugin:
         self.bot.registerCommand("vote", self.cmd_vote)
         self.bot.registerCommand("votes", self.cmd_votes)
         self.bot.registerCommand("abort", self.cmd_abort)
+        self.bot.registerCommand("report", self.cmd_report)
 
         self.bot.registerCommand("forcestart", self.cmd_forcestart, True)
 
@@ -131,7 +135,7 @@ class PugbotPlugin:
 
         self.bot.say("\x030,2Ding ding ding! The PUG is starting! The map is "
                      + chosenMap)
-        self.bot.say("\x030,2The captains are {0} and {1}!".format(
+        self.bot.say("\x030,2The captains are {} and {}!".format(
             captains[0], captains[1]))
         self.bot.say("\x037Players: " + ", ".join(self.Q))
 
@@ -164,8 +168,8 @@ class PugbotPlugin:
 
         for user in self.Q:
             self.bot.pm(user,
-                        ("The PUG is starting: /connect {0}:{1};" +
-                         "password {2}").format(s["host"], s["port"], spass))
+                        ("The PUG is starting: /connect {}:{};" +
+                         "password {}").format(s["host"], s["port"], spass))
 
         self.Q = []
         self.votes = {}
@@ -177,7 +181,7 @@ class PugbotPlugin:
                 remove = index
 
         if remove > -1:
-            del[remove]
+            del self.active[remove]
 
     def writeToDatabase(self, activePUG):
         self.bot.say("The following players are now allowed " +
@@ -186,7 +190,7 @@ class PugbotPlugin:
     def remove_user(self, user):
         if user in self.Q:
             self.Q.remove(user)
-            self.bot.say("{0} was removed from the queue".format(user))
+            self.bot.say("{} was removed from the queue".format(user))
 
         if user in self.votes:
             self.votes.pop(user)
@@ -221,14 +225,14 @@ class PugbotPlugin:
             return
 
         if not mapMatches:
-            self.bot.reply("{0} is not a valid map".format(string))
+            self.bot.reply("{} is not a valid map".format(string))
         elif len(mapMatches) > 1:
             self.bot.reply(
-                "There are multiple matches for '{0}': ".format(string) +
+                "There are multiple matches for '{}': ".format(string) +
                 ", ".join(mapMatches))
         else:
             self.votes[player] = mapMatches[0]
-            self.bot.say("{0} voted for {1}".format(player, mapMatches[0]))
+            self.bot.say("{} voted for {}".format(player, mapMatches[0]))
 
     """
     #------------------------------------------#
@@ -258,10 +262,10 @@ class PugbotPlugin:
     """
 
     def cmd_join(self, issuedBy, data):
-        """joins the queue"""
+        """- joins the queue"""
         if issuedBy not in self.Q:
             self.Q.append(issuedBy)
-            self.bot.say("{0} was added to the queue".format(issuedBy))
+            self.bot.say("{} was added to the queue".format(issuedBy))
         else:
             self.bot.reply("You are already in the queue")
 
@@ -271,35 +275,35 @@ class PugbotPlugin:
             self.start_game()
 
     def cmd_leave(self, issuedBy, data):
-        """leaves the queue"""
+        """- leaves the queue"""
         if issuedBy in self.Q:
             self.remove_user(issuedBy)
         else:
             self.bot.reply("You are not in the queue")
 
     def cmd_status(self, issuedBy, data):
-        """displays the status of the current queue"""
+        """- displays the status of the current queue"""
         if len(self.Q) == 0:
-            self.bot.reply("Queue is empty: 0/{0}".format(self.size))
+            self.bot.reply("Queue is empty: 0/{}".format(self.size))
             return
 
-        self.bot.reply("Queue status: {0}/{1}".format(len(self.Q),
+        self.bot.reply("Queue status: {}/{}".format(len(self.Q),
                                                       self.size))
         self.bot.reply(", ".join(self.Q))
 
     def cmd_maps(self, issuedBy, data):
-        """lists maps that are able to be voted"""
+        """- lists maps that are able to be voted"""
         self.bot.reply("Available maps: " + ", ".join(self.maps))
 
     def cmd_vote(self, issuedBy, data):
-        """votes for a map"""
+        """- votes for a map"""
         if issuedBy not in self.Q:
             self.bot.reply("You are not in the queue")
         else:
             self.vote_helper(issuedBy, data)
 
     def cmd_votes(self, issuedBy, data):
-        """shows number of votes per map"""
+        """- shows number of votes per map"""
         if not self.votes:
             self.bot.reply("There are no current votes")
             return
@@ -307,19 +311,32 @@ class PugbotPlugin:
         mapvotes = list(self.votes.values())
         tallies = dict((_map, mapvotes.count(_map)) for _map in mapvotes)
 
-        voteStrings = ["{0} ({1}): ".format(_map, tallies[_map])
+        voteStrings = ["{} ({}): ".format(_map, tallies[_map])
                        for _map in tallies]
 
         longLen = len(max(voteStrings, key=len))
-        voteStrings = ["{0} ({1}): ".format(_map, tallies[_map])
+        voteStrings = ["{} ({}): ".format(_map, tallies[_map])
                                     .ljust(longLen + 1) + "+" * tallies[_map]
                        for _map in tallies]
 
         for vs in voteStrings:
             self.bot.reply(vs)
 
+    def cmd_report(self, issuedBy, data):
+        """[player] [reason] - report a player"""
+        if not data:
+            return
+
+        self.cursor.execute("CREATE TABLE IF NOT EXISTS reports(reportedby TEXT, player TEXT, reason TEXT)")
+
+        data = data.split(" ")
+        self.cursor.execute("INSERT INTO reports(reportedby, player, reason) VALUES (?, ?, ?)", (issuedBy, "".join(data[0]), " ".join(data[1:])))
+        self.database.commit()
+
+        self.bot.reply("You reported \x02{}\x02 for '\x02{}\x02'".format(data[0], " ".join(data[1:])))
+
     def cmd_abort(self, issuedBy, data):
-        """votes to abort a currently-running PUG"""
+        """- votes to abort a currently-running PUG"""
         for pug in self.active:
             if issuedBy in pug.players:
                 target = pug.size // 2 + pug.size % 2
@@ -333,10 +350,10 @@ class PugbotPlugin:
                                          target))
 
                 # Theoretically should never be greater
-                if len(pug.abortVotes) >= target:
-                    pug.abort()
+                    if len(pug.abortVotes) >= target:
+                        pug.abort()
 
     def cmd_forcestart(self, issuedBy, data):
-        """starts the game whether there are enough players or not"""
-        self.bot.say("{0} is forcing the game to start!".format(issuedBy))
+        """- starts the game whether there are enough players or not"""
+        self.bot.say("{} is forcing the game to start!".format(issuedBy))
         self.start_game()
