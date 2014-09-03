@@ -71,9 +71,10 @@ class PugbotPlugin:
 
     def startup(self, config):
         if config is None:
-            raise RuntimeError("pugbot_ng requires a config file, make sure "
-                               "config/pugbot.json exists in your basebot "
-                               "folder.")
+            raise RuntimeError("pugbot_ng requires a config file. Make sure "
+                               "config/pugbot_ng.json exists in your basebot "
+                               "folder, and that it follows proper JSON "
+                               "syntax.")
 
         self.database = self.bot.getDatabase()
         self.cursor = self.database.cursor()
