@@ -14,19 +14,22 @@ def genRandomString(length):
 
 
 class ActivePUG:
-    def __init__(self, pugID, now, pugbot, server, players, _map, checkMap):
+    def __init__(self, pugID, now, pugbot, server, players, _map, check, pw):
         self.active = True
 
         self.pugID = pugID
         self.startTime = now
+        self.password = pw
 
         self.pugbot = pugbot
         self.server = server
 
         self.players = players
         self.size = len(self.players)
+        self.ringersNeeded = 0
+
         self.chosenMap = _map
-        self.checkMap = checkMap
+        self.checkMap = check
 
         self.abortVotes = []
 
@@ -137,6 +140,7 @@ class PugbotPlugin:
         self.bot.registerCommand("votes", self.cmd_votes)
         self.bot.registerCommand("abort", self.cmd_abort)
         self.bot.registerCommand("report", self.cmd_report)
+        self.bot.registerCommand("needringer", self.cmd_needringer)
 
         self.bot.registerCommand("reports", self.cmd_reports, True)
         self.bot.registerCommand("forcestart", self.cmd_forcestart, True)
@@ -201,11 +205,11 @@ class PugbotPlugin:
             captains[0], captains[1]))
         self.bot.say("\x037 Players: " + ", ".join(self.Q))
 
+        spass = genRandomString(5)
         thisPUG = ActivePUG(pugID, now, self, s, self.Q,
-                            chosenMap, self.checkmap)
+                            chosenMap, self.checkmap, spass)
         self.active.append(thisPUG)
 
-        spass = genRandomString(5)
         s["connection"].send("set g_password " + spass)
 
         s["connection"].send("exec uzl_ts.cfg")
@@ -322,7 +326,24 @@ class PugbotPlugin:
                 self.bot.reply("You are already in an active PUG, please " +
                                "go finish your game before joining another")
                 return
+    
+        if data.strip().lower() == "ringer":
+            for pug in self.active:
+                if pug.ringersNeeded:
+                    pug.ringersNeeded -= 1
+                    self.bot.pm(issuedBy, "Thanks for ringing! "
+                                          "Here are the server details:")
+                    self.bot.pm(issuedBy, "/connect {}:{}; password {}"
+                                          .format(pug.server["host"], 
+                                                  pug.server["port"],
+                                                  pug.password))
+                    return
 
+            self.bot.reply("There are no ringers needed right now")
+            return
+
+
+ 
         if issuedBy not in self.Q:
             self.Q.append(issuedBy)
             self.bot.say("{} joined the queue ({}/{})"
@@ -435,9 +456,27 @@ class PugbotPlugin:
                                          len(pug.abortVotes),
                                          target))
 
-                # Theoretically should never be greater
+                    # Theoretically should never be greater
                     if len(pug.abortVotes) >= target:
                         pug.abort()
+
+    def cmd_needringer(self, issuedBy, data):
+        """- calls for a ringer"""
+        for pug in self.active:
+            if issuedBy in pug.players:
+                pug.ringersNeeded += 1
+                self.bot.say("\x037 {} has requested a ringer for PUG#{}! "
+                             .format(issuedBy, pug.pugID))
+                return
+
+        self.bot.reply("You can't call for a ringer unless you're in an active"
+                       " PUG.")
+
+    """
+    #------------------------------------------#
+    #              Admin Commands              #
+    #------------------------------------------#
+    """
 
     def cmd_reports(self, issuedBy, data):
         """[number] - lists the last n reports"""
