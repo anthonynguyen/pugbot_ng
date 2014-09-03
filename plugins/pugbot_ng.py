@@ -141,21 +141,32 @@ class PugbotPlugin:
         self.bot.registerCommand("abort", self.cmd_abort)
         self.bot.registerCommand("report", self.cmd_report)
         self.bot.registerCommand("needringer", self.cmd_needringer)
+        self.bot.registerCommand("ringers", self.cmd_ringers)
 
         self.bot.registerCommand("reports", self.cmd_reports, True)
         self.bot.registerCommand("forcestart", self.cmd_forcestart, True)
         self.bot.registerCommand("remove", self.cmd_remove, True)
 
+        self.running = True
+        self.ringerSpamThread = threading.Thread(target=self.spam_ringers)
+        self.ringerSpamThread.start()
+
     def shutdown(self):
         self.database.close()
+        self.running = False
         for pug in self.active:
             pug.abort()
 
     """
     #------------------------------------------#
-    #             Command Helpers              #
+    #               Miscellaneous              #
     #------------------------------------------#
     """
+
+    def spam_ringers(self):
+        while self.running:
+            self.output_ringers(self.bot.say)
+            time.sleep(60)
 
     def start_game(self):
         if len(self.Q) < 2:
@@ -239,6 +250,24 @@ class PugbotPlugin:
             (int(time.time()), "aborted" if aborted else "ended", pug.pugID))
         database.commit()
         database.close()
+
+    """
+    #------------------------------------------#
+    #             Command Helpers              #
+    #------------------------------------------#
+    """
+
+    def output_ringers(self, f):
+        r = False
+        for pug in self.active:
+            if pug.ringersNeeded:
+                r = True
+                f("\x037 PUG #{} needs {} ringer{}!"
+                  .format(pug.pugID,
+                          pug.ringersNeeded,
+                          "" if pug.ringersNeeded == 1 else "s"))
+
+        return r
 
     def remove_user(self, user):
         if user in self.Q:
@@ -469,6 +498,12 @@ class PugbotPlugin:
 
         self.bot.reply("You can't call for a ringer unless you're in an active"
                        " PUG.")
+
+    def cmd_ringers(self, issuedBy, data):
+        """- lists needed ringers"""
+        needed = self.output_ringers(self.bot.reply)
+        if not needed:
+            self.bot.reply("Sorry, no ringers are needed at this time")
 
     """
     #------------------------------------------#
