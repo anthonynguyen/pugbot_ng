@@ -142,6 +142,8 @@ class PugbotPlugin:
         self.bot.registerCommand("report", self.cmd_report)
         self.bot.registerCommand("needringer", self.cmd_needringer)
         self.bot.registerCommand("ringers", self.cmd_ringers)
+        self.bot.registerCommand("active", self.cmd_active)
+        self.bot.registerCommand("last", self.cmd_last)
 
         self.bot.registerCommand("reports", self.cmd_reports, True)
         self.bot.registerCommand("forcestart", self.cmd_forcestart, True)
@@ -505,12 +507,50 @@ class PugbotPlugin:
         if not needed:
             self.bot.reply("Sorry, no ringers are needed at this time")
 
+    def cmd_active(self, issuedBy, data):
+        """- list the currently active PUGs"""
+        pugs = self.cursor.execute("""SELECT * FROM pugs WHERE STATUS == "in progress" ORDER BY ID DESC LIMIT 1""")
+        row = self.cursor.fetchall()
+
+        if not row:
+            self.bot.reply("There are no currently active PUGs")
+            return
+
+        row = row[0]
+        for pug in self.active:
+            pugtime = int((time.time() - pug.startTime) // 60)
+
+        if pugtime == 1:
+            s = ""
+        else:
+            s = "s"
+
+        self.bot.reply("\x030,3 PUG #{}     Started: {} minute{} ago     Map: {} \x03 ".format(row[0], pugtime, s, row[3]))
+
+    def cmd_last(self, issuedBy, data):
+        """- show the last pug that was played"""
+        pugs = self.cursor.execute("""SELECT * FROM pugs WHERE STATUS != "in progress" ORDER BY ID DESC LIMIT 1""")
+        row = self.cursor.fetchone()
+
+        if not row:
+            self.bot.reply("There is no recently played PUG") #lol, this should only ever (possibly) happen once
+            return
+
+        pugtime = (int(row[2]) - int(row[1])) // 60
+
+        if pugtime == 1:
+            s = ""
+        else:
+            s = "s"
+
+        self.bot.reply("\x030,7 PUG #{}    Lasted: {} minute{}     Map: {} \x03".format(row[0], pugtime, s, row[3]))
+
+
     """
     #------------------------------------------#
     #              Admin Commands              #
     #------------------------------------------#
     """
-
     def cmd_reports(self, issuedBy, data):
         """[number] - lists the last n reports"""
         try:
