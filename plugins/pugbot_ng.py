@@ -509,23 +509,19 @@ class PugbotPlugin:
 
     def cmd_active(self, issuedBy, data):
         """- list the currently active PUGs"""
-        pugs = self.cursor.execute("""SELECT * FROM pugs WHERE STATUS == "in progress" ORDER BY ID DESC LIMIT 1""")
-        row = self.cursor.fetchall()
-
-        if not row:
+        if not self.active:
             self.bot.reply("There are no currently active PUGs")
             return
 
-        row = row[0]
         for pug in self.active:
-            pugtime = int((time.time() - pug.startTime) // 60)
+            minutes = int((time.time() - pug.startTime) // 60)
 
-        if pugtime == 1:
-            s = ""
-        else:
-            s = "s"
+            if minutes == 1:
+                s = ""
+            else:
+                s = "s"
 
-        self.bot.reply("\x030,3 PUG #{}     Started: {} minute{} ago     Map: {} \x03 ".format(row[0], pugtime, s, row[3]))
+            self.bot.reply("\x030,3 PUG #{}     Started: {} minute{} ago     Map: {} \x03 ".format(pug.pugID, minutes, s, pug.chosenMap))
 
     def cmd_last(self, issuedBy, data):
         """- show the last pug that was played"""
