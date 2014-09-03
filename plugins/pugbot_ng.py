@@ -521,15 +521,20 @@ class PugbotPlugin:
             else:
                 s = "s"
 
-            self.bot.reply("\x030,3 PUG #{}     Started: {} minute{} ago     Map: {} \x03 ".format(pug.pugID, minutes, s, pug.chosenMap))
+            self.bot.reply("\x030,3 PUG #{}     Started: {} minute{} ago     "
+                           "Map: {} \x03 "
+                           .format(pug.pugID, minutes, s, pug.chosenMap))
 
     def cmd_last(self, issuedBy, data):
         """- show the last pug that was played"""
-        pugs = self.cursor.execute("""SELECT * FROM pugs WHERE STATUS != "in progress" ORDER BY ID DESC LIMIT 1""")
+        pugs = self.cursor.execute("""
+            SELECT * FROM pugs WHERE STATUS != "in progress"
+            ORDER BY ID DESC LIMIT 1;""")
         row = self.cursor.fetchone()
 
         if not row:
-            self.bot.reply("There is no recently played PUG") #lol, this should only ever (possibly) happen once
+            # lol, this should only ever (possibly) happen once
+            self.bot.reply("There is no recently played PUG")
             return
 
         pugtime = (int(row[2]) - int(row[1])) // 60
@@ -539,8 +544,8 @@ class PugbotPlugin:
         else:
             s = "s"
 
-        self.bot.reply("\x030,7 PUG #{}    Lasted: {} minute{}     Map: {} \x03".format(row[0], pugtime, s, row[3]))
-
+        self.bot.reply("\x030,7 PUG #{}    Lasted: {} minute{}    "
+                       "Map: {} \x03".format(row[0], pugtime, s, row[3]))
 
     """
     #------------------------------------------#
