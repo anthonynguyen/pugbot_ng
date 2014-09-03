@@ -135,6 +135,8 @@ class PugbotPlugin:
         self.bot.registerCommand("votes", self.cmd_votes)
         self.bot.registerCommand("abort", self.cmd_abort)
         self.bot.registerCommand("report", self.cmd_report)
+        self.bot.registerCommand("active", self.cmd_active)
+        self.bot.registerCommand("last", self.cmd_last)
 
         self.bot.registerCommand("reports", self.cmd_reports, True)
         self.bot.registerCommand("forcestart", self.cmd_forcestart, True)
@@ -435,6 +437,32 @@ class PugbotPlugin:
                 # Theoretically should never be greater
                     if len(pug.abortVotes) >= target:
                         pug.abort()
+
+    def cmd_active(self, issuedBy, data):
+        """- list the currently active PUGs"""
+        pugs = self.cursor.execute("""SELECT * FROM pugs WHERE STATUS == "in progress" ORDER BY ID DESC LIMIT 1""")
+        row = self.cursor.fetchall()
+
+        if not row:
+            self.bot.reply("There are no currently active PUGs")
+            return
+
+        row = row[0]
+        for pug in self.active:
+            pugtime = int((time.time() - pug.startTime) // 60)
+            self.bot.reply("\x030,3 PUG #{}     Started: {} minutes ago     Map: {} \x03 ".format(row[0], pugtime, row[3]))
+
+    def cmd_last(self, issuedBy, data):
+        """- show the last pug that was played"""
+        pugs = self.cursor.execute("""SELECT * FROM pugs WHERE STATUS != "in progress" ORDER BY ID DESC LIMIT 1""")
+        row = self.cursor.fetchone()
+
+        if not row:
+            self.bot.reply("There is no recently played PUG") #lol, this should only ever (possibly) happen once
+            return
+
+        pugtime = (int(row[2]) - int(row[1])) // 60
+        self.bot.reply("\x030,7 PUG #{}    Lasted: {} minutes     Map: {} \x03".format(row[0], pugtime, row[3]))
 
     def cmd_reports(self, issuedBy, data):
         """[number] - lists the last n reports"""
