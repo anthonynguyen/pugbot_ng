@@ -32,16 +32,14 @@ class ActivePUG:
 
         self.checkRE = re.compile("mapname\" is:\"" + self.checkMap)
 
-        self.checkTimer = threading.Timer(10.0, self.check_map_end)
-        self.checkTimer.start()
+        self.checkThread = threading.Thread(target=self.check_map_end)
+        self.checkThread.start()
 
     def end(self, abort=False):
         self.active = False
 
         self.server["active"] = False
         self.server["connection"].send("map " + self.checkMap)
-
-        self.checkTimer.cancel()
 
         self.pugbot.write_to_database(self, abort)
         self.pugbot.cleanup_active()
@@ -57,12 +55,15 @@ class ActivePUG:
         self.end(True)
 
     def check_map_end(self):
-        response = self.server["connection"].send("mapname").strip()
-        if self.checkRE.search(response) is None:
-            self.checkTimer = threading.Timer(10.0, self.check_map_end)
-            self.checkTimer.start()
-        else:
-            self.end()
+        time.sleep(10)
+
+        while self.active:
+            response = self.server["connection"].send("mapname").strip()
+            if self.checkRE.search(response) is not None:
+                self.end()
+                return
+
+            time.sleep(10)
 
 
 class PugbotPlugin:
