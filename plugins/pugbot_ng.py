@@ -138,6 +138,7 @@ class PugbotPlugin:
 
         self.bot.registerCommand("reports", self.cmd_reports, True)
         self.bot.registerCommand("forcestart", self.cmd_forcestart, True)
+        self.bot.registerCommand("remove", self.cmd_remove, True)
 
     def shutdown(self):
         self.database.close()
@@ -459,3 +460,11 @@ class PugbotPlugin:
         """- starts the game whether there are enough players or not"""
         self.bot.say("{} is forcing the game to start!".format(issuedBy))
         self.start_game()
+
+    def cmd_remove(self, issuedBy, data):
+        """- forcibly removes a user from the queue"""
+        if not data:
+            self.bot.reply("Specify a user to remove")
+            return
+
+        self.remove_user(data.strip())

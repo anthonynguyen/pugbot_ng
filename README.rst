@@ -29,6 +29,7 @@ Admin commands:
 
 * ``reports``
 * ``forcestart``
+* ``remove``
 
 Installation
 ------------
