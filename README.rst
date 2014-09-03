@@ -15,7 +15,7 @@ pugbot-ng = pugbot next gen
 Commands:
 
 * ``help``
-* ``join`` or ``join <mapname>``
+* ``join``, ``join <mapname>``, or ``join ringer``
 * ``leave``
 * ``status``
 * ``maps``
@@ -24,6 +24,10 @@ Commands:
 * ``abort``
 * ``report``
 * ``login``
+* ``active``
+* ``last``
+* ``needringer``
+* ``ringers``
 
 Admin commands:
 
