@@ -115,7 +115,7 @@ class PugbotPlugin:
         self.servers = []
         for s in config["urt_servers"]:
             self.servers.append({
-                "active": None,
+                "active": False,
                 "connection": RConnection(s["host"], s["port"], s["password"]),
                 "host": s["host"],
                 "port": s["port"],
@@ -170,19 +170,19 @@ class PugbotPlugin:
         chosenMap = mapPool[random.randint(0, len(mapPool) - 1)]
 
         captains = random.sample(self.Q, 2)
-        mine = -1
-        for n, s in enumerate(self.servers):
-            if not s["active"] and s["connection"].test():
-                mine = n
-                s["active"] = True
 
-        if mine == -1:
+        s = None
+        for server in self.servers:
+            if not server["active"] and server["connection"].test():
+                s = server
+                s["active"] = True
+                break
+
+        if s is None:
             self.bot.say("No servers available, what a shame... :(")
             self.Q = []
             self.votes = {}
             return
-
-        s = self.servers[mine]
 
         now = int(time.time())
 
