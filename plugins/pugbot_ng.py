@@ -326,7 +326,7 @@ class PugbotPlugin:
                 self.bot.reply("You are already in an active PUG, please " +
                                "go finish your game before joining another")
                 return
-    
+
         if data.strip().lower() == "ringer":
             for pug in self.active:
                 if pug.ringersNeeded:
@@ -334,7 +334,7 @@ class PugbotPlugin:
                     self.bot.pm(issuedBy, "Thanks for ringing! "
                                           "Here are the server details:")
                     self.bot.pm(issuedBy, "/connect {}:{}; password {}"
-                                          .format(pug.server["host"], 
+                                          .format(pug.server["host"],
                                                   pug.server["port"],
                                                   pug.password))
                     return
@@ -342,8 +342,6 @@ class PugbotPlugin:
             self.bot.reply("There are no ringers needed right now")
             return
 
-
- 
         if issuedBy not in self.Q:
             self.Q.append(issuedBy)
             self.bot.say("{} joined the queue ({}/{})"
