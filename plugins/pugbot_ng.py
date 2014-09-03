@@ -450,7 +450,13 @@ class PugbotPlugin:
         row = row[0]
         for pug in self.active:
             pugtime = int((time.time() - pug.startTime) // 60)
-            self.bot.reply("\x030,3 PUG #{}     Started: {} minutes ago     Map: {} \x03 ".format(row[0], pugtime, row[3]))
+
+        if pugtime == 1:
+            s = ""
+        else:
+            s = "s"
+
+        self.bot.reply("\x030,3 PUG #{}     Started: {} minute{} ago     Map: {} \x03 ".format(row[0], pugtime, s, row[3]))
 
     def cmd_last(self, issuedBy, data):
         """- show the last pug that was played"""
@@ -462,7 +468,13 @@ class PugbotPlugin:
             return
 
         pugtime = (int(row[2]) - int(row[1])) // 60
-        self.bot.reply("\x030,7 PUG #{}    Lasted: {} minutes     Map: {} \x03".format(row[0], pugtime, row[3]))
+
+        if pugtime == 1:
+            s = ""
+        else:
+            s = "s"
+
+        self.bot.reply("\x030,7 PUG #{}    Lasted: {} minute{}     Map: {} \x03".format(row[0], pugtime, s, row[3]))
 
     def cmd_reports(self, issuedBy, data):
         """[number] - lists the last n reports"""
