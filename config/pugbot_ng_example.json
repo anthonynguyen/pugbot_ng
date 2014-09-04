@@ -33,6 +33,8 @@
     "checkmap": "ut4_dressingroom",
     "urt_servers": [
         {
+            "name": "Example Server",
+            "config_file": "uzl_ts.cfg",
             "host": "example.com",
             "port": 27960,
             "password": "rcon_password"

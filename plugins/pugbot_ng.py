@@ -126,13 +126,13 @@ class PugbotPlugin:
 
         self.servers = []
         for s in config["urt_servers"]:
-            self.servers.append({
-                "active": False,
-                "connection": RConnection(s["host"], s["port"], s["password"]),
-                "host": s["host"],
-                "port": s["port"],
-                "rcon_password": s["password"]
-            })
+            server = s.copy()
+            server["active"] = False
+            server["connection"] = RConnection(
+                s["host"], s["port"], s["password"])
+
+            self.servers.append(server)
+
 
         # self.bot.say("[pugbot-ng] {} available servers.".format(
         #     len(self.servers)))
@@ -250,14 +250,15 @@ class PugbotPlugin:
         
         s["connection"].send("set g_password " + spass)
 
-        s["connection"].send("exec uzl_ts.cfg")
-        s["connection"].send("g_motd \"PUG #{}\"".format(pugID))
+        s["connection"].send("exec {}".format(s["config_file"]))
         s["connection"].send("map ut4_" + chosenMap)
         s["connection"].send("set g_nextmap " + self.checkmap)
 
         captainString = "Captains are ^1" + " ^7and ^4".join(captains)
         s["connection"].send("set sv_joinmessage \"{}\"".format(captainString))
-
+        s["connection"].send("g_motd \"PUG #{}\"".format(pugID))
+        s["connection"].send("sv_hostname \"{} [^2#pugbot-ng^7]\""
+                             .format(s["name"]))
         for user in players:
             self.bot.pm(user,
                         ("The PUG is starting: /connect {}:{};" +
@@ -265,7 +266,7 @@ class PugbotPlugin:
 
     def cleanup_active(self):
         self.active = [pug for pug in self.active if pug.active]
-        if self.queuedQueues:
+        if self.running and self.queuedQueues:
             for server in self.servers:
                 if not server["active"] and server["connection"].test():
                     server["active"] = True
