@@ -39,7 +39,6 @@ class ActivePUG:
         self.checkThread.start()
 
     def end(self, abort=False):
-        print(self.pugbot.queuedQueues)
         self.active = False
 
         self.server["active"] = False
@@ -266,7 +265,6 @@ class PugbotPlugin:
 
     def cleanup_active(self):
         self.active = [pug for pug in self.active if pug.active]
-        print(self.queuedQueues)
         if self.queuedQueues:
             for server in self.servers:
                 if not server["active"] and server["connection"].test():
@@ -327,12 +325,9 @@ class PugbotPlugin:
                     break
                 else:
                     graduate = self.Q.pop(0)
-                    print("Graduate: " + graduate)
                     Q.players.append(graduate)
-                    print("graduate appended")
                     if graduate in self.votes:
                         self.votes.pop(graduate)
-                    print("graduate popped")
                     self.bot.say("{} was moved to the ready queue."
                                  .format(graduate))
         
@@ -463,7 +458,6 @@ class PugbotPlugin:
 
     def cmd_status(self, issuedBy, data):
         """- displays the status of the current queue"""
-        print(self.queuedQueues)
         if len(self.Q) == 0:
             self.bot.reply("Queue is empty: 0/{}".format(self.size))
             return
