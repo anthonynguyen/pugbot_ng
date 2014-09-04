@@ -459,13 +459,16 @@ class PugbotPlugin:
 
     def cmd_status(self, issuedBy, data):
         """- displays the status of the current queue"""
+        for ind, Q in enumerate(self.queuedQueues):
+            self.bot.reply("Waiting list {} ({}): {}"
+                           .format(ind + 1, Q._map, ", ".join(Q.players)))
+
         if len(self.Q) == 0:
-            self.bot.reply("Queue is empty: 0/{}".format(self.size))
+            self.bot.reply("Queue is empty (0/{})".format(self.size))
             return
 
-        self.bot.reply("Queue status: {}/{}".format(len(self.Q),
-                                                    self.size))
-        self.bot.reply(", ".join(self.Q))
+        self.bot.reply("Current queue ({}/{}): {}"
+                       .format(len(self.Q), self.size, ", ".join(self.Q)))
 
     def cmd_maps(self, issuedBy, data):
         """- lists maps that are able to be voted"""
