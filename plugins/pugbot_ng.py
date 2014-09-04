@@ -223,13 +223,15 @@ class PugbotPlugin:
                             chosenMap, self.checkmap, spass)
         self.active.append(thisPUG)
 
+        
         s["connection"].send("set g_password " + spass)
 
         s["connection"].send("exec uzl_ts.cfg")
+        s["connection"].send("g_motd \"PUG #{}\"".format(pugID))
         s["connection"].send("map " + chosenMap)
         s["connection"].send("set g_nextmap " + self.checkmap)
 
-        captainString = "Captains are " + " and ".join(captains)
+        captainString = "Captains are ^1" + " ^7and ^4".join(captains)
         s["connection"].send("set sv_joinmessage \"{}\"".format(captainString))
 
         for user in self.Q:
