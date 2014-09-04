@@ -252,7 +252,7 @@ class PugbotPlugin:
 
         s["connection"].send("exec uzl_ts.cfg")
         s["connection"].send("g_motd \"PUG #{}\"".format(pugID))
-        s["connection"].send("map " + chosenMap)
+        s["connection"].send("map ut4_" + chosenMap)
         s["connection"].send("set g_nextmap " + self.checkmap)
 
         captainString = "Captains are ^1" + " ^7and ^4".join(captains)
