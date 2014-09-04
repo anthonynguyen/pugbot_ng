@@ -39,13 +39,13 @@ class ActivePUG:
         self.checkThread.start()
 
     def end(self, abort=False):
+        print(self.pugbot.queuedQueues)
         self.active = False
 
         self.server["active"] = False
         self.server["connection"].send("map " + self.checkMap)
 
         self.pugbot.write_to_database(self, abort)
-        self.pugbot.cleanup_active()
 
         if abort:
             self.pugbot.bot.say("\x030,7 PUG #{} has been aborted! "
@@ -53,6 +53,8 @@ class ActivePUG:
         else:
             self.pugbot.bot.say("\x030,4 PUG #{} has ended! "
                                 .format(self.pugID))
+
+        self.pugbot.cleanup_active()
 
     def abort(self):
         self.end(True)
@@ -69,6 +71,12 @@ class ActivePUG:
             time.sleep(10)
 
 
+class QueuedQueue:
+    def __init__(self, players, _map):
+        self.players = players
+        self._map = _map
+
+
 class PugbotPlugin:
     def __init__(self, bot):
         self.bot = bot
@@ -80,10 +88,9 @@ class PugbotPlugin:
                                "folder, and that it follows proper JSON "
                                "syntax.")
 
-        self.database = self.bot.getDatabase()
-        self.cursor = self.database.cursor()
+        database, cursor = self.get_database()
 
-        self.cursor.execute("""
+        cursor.execute("""
         CREATE TABLE IF NOT EXISTS `reports` (
             `id` INTEGER NULL DEFAULT NULL,
             `date` INTEGER NULL DEFAULT NULL,
@@ -93,7 +100,7 @@ class PugbotPlugin:
             PRIMARY KEY (`id`)
         );
         """)
-        self.cursor.execute("""
+        cursor.execute("""
         CREATE TABLE IF NOT EXISTS `pugs` (
             `id` INTEGER NULL DEFAULT NULL,
             `start` INTEGER NULL DEFAULT NULL,
@@ -105,11 +112,14 @@ class PugbotPlugin:
             PRIMARY KEY (`id`)
         );
         """)
-        self.database.commit()
+        database.commit()
+        database.close()
 
         self.Q = []
         self.votes = {}
         self.active = []
+
+        self.queuedQueues = []
 
         self.maps = config["maps"]
         self.size = config["size"]
@@ -154,8 +164,8 @@ class PugbotPlugin:
         self.ringerSpamThread.start()
 
     def shutdown(self):
-        self.database.close()
         self.running = False
+        self.queuedQueues = []
         for pug in self.active:
             pug.abort()
 
@@ -164,13 +174,18 @@ class PugbotPlugin:
     #               Miscellaneous              #
     #------------------------------------------#
     """
+    
+    def get_database(self):
+        database = sqlite3.connect(self.bot.basepath +
+                                   "/database/pugbot_ng.sqlite")
+        return database, database.cursor()
 
     def spam_ringers(self):
         while self.running:
             self.output_ringers(self.bot.say)
             time.sleep(60)
 
-    def start_game(self):
+    def queue_full(self):
         if len(self.Q) < 2:
             self.bot.say("A game cannot be started with fewer than 2 players.")
             return
@@ -186,8 +201,6 @@ class PugbotPlugin:
 
         chosenMap = mapPool[random.randint(0, len(mapPool) - 1)]
 
-        captains = random.sample(self.Q, 2)
-
         s = None
         for server in self.servers:
             if not server["active"] and server["connection"].test():
@@ -196,30 +209,42 @@ class PugbotPlugin:
                 break
 
         if s is None:
-            self.bot.say("No servers available, what a shame... :(")
+            self.bot.say("Sorry, there are no servers available right now. "
+                         "Once a server frees up, your PUG will start")
+            Q = QueuedQueue(self.Q[:], chosenMap)
+            self.queuedQueues.append(Q)
             self.Q = []
             self.votes = {}
             return
 
+        self.start_game(s, self.Q, chosenMap)
+        self.Q = []
+        self.votes = {}
+
+    def start_game(self, s, players, chosenMap):
+
         now = int(time.time())
 
-        self.cursor.execute(
+        captains = random.sample(players, 2)
+
+        database, cursor = self.get_database()
+        cursor.execute(
             "INSERT INTO pugs (start, end, map, players, captains, status) \
             VALUES(?, -1, ?, ?, ?, 'in progress')",
-            (now, chosenMap, ", ".join(self.Q), ", ".join(captains)))
-        self.database.commit()
-
-        pugID = self.cursor.lastrowid
+            (now, chosenMap, ", ".join(players), ", ".join(captains)))
+        database.commit()
+        pugID = cursor.lastrowid
+        database.close()
 
         self.bot.say(
             "\x030,3 Ding ding ding! PUG #{} is starting! The map is {} "
             .format(pugID, chosenMap))
         self.bot.say("\x030,3 The captains are {} and {}! ".format(
             captains[0], captains[1]))
-        self.bot.say("\x037 Players: " + ", ".join(self.Q))
+        self.bot.say("\x037 Players: " + ", ".join(players))
 
         spass = genRandomString(5)
-        thisPUG = ActivePUG(pugID, now, self, s, self.Q,
+        thisPUG = ActivePUG(pugID, now, self, s, players,
                             chosenMap, self.checkmap, spass)
         self.active.append(thisPUG)
 
@@ -234,21 +259,23 @@ class PugbotPlugin:
         captainString = "Captains are ^1" + " ^7and ^4".join(captains)
         s["connection"].send("set sv_joinmessage \"{}\"".format(captainString))
 
-        for user in self.Q:
+        for user in players:
             self.bot.pm(user,
                         ("The PUG is starting: /connect {}:{};" +
                          "password {}").format(s["host"], s["port"], spass))
 
-        self.Q = []
-        self.votes = {}
-
     def cleanup_active(self):
         self.active = [pug for pug in self.active if pug.active]
+        print(self.queuedQueues)
+        if self.queuedQueues:
+            for server in self.servers:
+                if not server["active"] and server["connection"].test():
+                    server["active"] = True
+                    Q = self.queuedQueues.pop(0)
+                    self.start_game(server, Q.players, Q._map)
 
     def write_to_database(self, pug, aborted):
-        database = sqlite3.connect(self.bot.basepath +
-                                   "/database/pugbot_ng.sqlite")
-        cursor = database.cursor()
+        database, cursor = self.get_database()
         cursor.execute(
             "UPDATE pugs SET end = ?, status = ? WHERE id = ?",
             (int(time.time()), "aborted" if aborted else "ended", pug.pugID))
@@ -279,8 +306,38 @@ class PugbotPlugin:
             self.bot.say("{} was removed from the queue ({}/{})"
                          .format(user, len(self.Q), self.size))
 
-        if user in self.votes:
-            self.votes.pop(user)
+            if user in self.votes:
+                self.votes.pop(user)
+
+            return
+
+        remove = -1
+        for ind, Q in enumerate(self.queuedQueues):
+            if user in Q.players:
+                Q.players.remove(user)
+                self.bot.say("{} was removed from the ready queue"
+                             .format(user))
+
+                if not self.Q:
+                    self.Q = Q.players[:]
+                    self.votes = {}
+                    self.bot.say("The queue was reset. "
+                                 "Please find another player.")
+                    remove = ind
+                    break
+                else:
+                    graduate = self.Q.pop(0)
+                    print("Graduate: " + graduate)
+                    Q.players.append(graduate)
+                    print("graduate appended")
+                    if graduate in self.votes:
+                        self.votes.pop(graduate)
+                    print("graduate popped")
+                    self.bot.say("{} was moved to the ready queue."
+                                 .format(graduate))
+        
+        if remove > -1:
+            del self.queuedQueues[remove]
 
     def fuzzy_match(self, string1, string2):
         string1 = string1.lower()
@@ -346,6 +403,11 @@ class PugbotPlugin:
             self.votes[new] = self.votes[old]
             self.votes.pop(old)
 
+        for Q in self.queuedQueues:
+            if old in Q.players:
+                Q.players.remove(old)
+                Q.players.append(new)
+
     """
     #------------------------------------------#
     #                Commands                  #
@@ -385,10 +447,15 @@ class PugbotPlugin:
         self.vote_helper(issuedBy, data)
 
         if len(self.Q) == self.size:
-            self.start_game()
+            self.queue_full()
 
     def cmd_leave(self, issuedBy, data):
         """- leaves the queue"""
+        for Q in self.queuedQueues:
+            if issuedBy in Q.players:
+                self.remove_user(issuedBy)
+                return
+
         if issuedBy in self.Q:
             self.remove_user(issuedBy)
         else:
@@ -396,6 +463,7 @@ class PugbotPlugin:
 
     def cmd_status(self, issuedBy, data):
         """- displays the status of the current queue"""
+        print(self.queuedQueues)
         if len(self.Q) == 0:
             self.bot.reply("Queue is empty: 0/{}".format(self.size))
             return
@@ -445,11 +513,14 @@ class PugbotPlugin:
         reason = " ".join(data[1:])
 
         dayAgo = time.time() - 86400
-        self.cursor.execute(
+
+        database, cursor = self.get_database()
+
+        cursor.execute(
             "SELECT * FROM reports WHERE reportedBy == '{}' AND date > {}"
             .format(issuedBy, dayAgo))
 
-        result = self.cursor.fetchall()
+        result = cursor.fetchall()
         playerCount = 0
 
         for row in result:
@@ -464,11 +535,12 @@ class PugbotPlugin:
             self.bot.reply("You cannot report the same person twice per day")
             return
 
-        self.cursor.execute(
+        cursor.execute(
             "INSERT INTO reports(date, reportedby, player, reason) \
             VALUES (?, ?, ?, ?)",
             (int(time.time()), issuedBy, player, reason))
-        self.database.commit()
+        database.commit()
+        database.close()
 
         self.bot.reply("You reported \x02{}\x02 for '\x02{}\x02'"
                        .format(data[0], " ".join(data[1:])))
@@ -529,10 +601,12 @@ class PugbotPlugin:
 
     def cmd_last(self, issuedBy, data):
         """- show the last pug that was played"""
-        pugs = self.cursor.execute("""
+        database, cursor = self.get_database()
+        pugs = cursor.execute("""
             SELECT * FROM pugs WHERE STATUS != "in progress"
             ORDER BY ID DESC LIMIT 1;""")
-        row = self.cursor.fetchone()
+        row = cursor.fetchone()
+        database.close()
 
         if not row:
             # lol, this should only ever (possibly) happen once
@@ -561,7 +635,8 @@ class PugbotPlugin:
         except:
             n = 10
 
-        reports = self.cursor.execute("""
+        database, cursor = self.get_database()
+        reports = cursor.execute("""
             SELECT * FROM (
                 SELECT * FROM `reports` ORDER BY id DESC LIMIT {}
             ) ORDER BY id ASC;
@@ -573,10 +648,12 @@ class PugbotPlugin:
                 "#{} [{}]: {} reported {} for {}"
                 .format(r[0], self.time_string(r[1]), r[2], r[3], r[4]))
 
+        database.close()
+
     def cmd_forcestart(self, issuedBy, data):
         """- starts the game whether there are enough players or not"""
         self.bot.say("{} is forcing the game to start!".format(issuedBy))
-        self.start_game()
+        self.queue_full()
 
     def cmd_remove(self, issuedBy, data):
         """- forcibly removes a user from the queue"""
