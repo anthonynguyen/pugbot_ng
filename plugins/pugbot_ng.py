@@ -588,14 +588,9 @@ class PugbotPlugin:
         for pug in self.active:
             minutes = int((time.time() - pug.startTime) // 60)
 
-            if minutes == 1:
-                s = ""
-            else:
-                s = "s"
-
             self.bot.reply("\x030,3 PUG #{}     Started: {} minute{} ago     "
                            "Map: {} \x03 "
-                           .format(pug.pugID, minutes, s, pug.chosenMap))
+                           .format(pug.pugID, minutes, "" if minutes == 1 else "s", pug.chosenMap))
 
     def cmd_last(self, issuedBy, data):
         """- show the last pug that was played"""
@@ -611,15 +606,10 @@ class PugbotPlugin:
             self.bot.reply("There is no recently played PUG")
             return
 
-        pugtime = (int(row[2]) - int(row[1])) // 60
-
-        if pugtime == 1:
-            s = ""
-        else:
-            s = "s"
+        minutes = (int(row[2]) - int(row[1])) // 60
 
         self.bot.reply("\x030,7 PUG #{}    Lasted: {} minute{}    "
-                       "Map: {} \x03".format(row[0], pugtime, s, row[3]))
+                       "Map: {} \x03".format(row[0], minutes, "" if minutes == 1 else "s", row[3]))
 
     """
     #------------------------------------------#
