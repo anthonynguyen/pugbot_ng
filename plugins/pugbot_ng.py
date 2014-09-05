@@ -142,8 +142,15 @@ class PugbotPlugin:
         self.bot.registerEvent("nick_change", self.nick_handler)
 
         self.bot.registerCommand("join", self.cmd_join)
+        self.bot.registerCommand("add", self.cmd_join)
+
         self.bot.registerCommand("leave", self.cmd_leave)
+        self.bot.registerCommand("quit", self.cmd_leave)
+        self.bot.registerCommand("exit", self.cmd_leave)
+
         self.bot.registerCommand("status", self.cmd_status)
+        self.bot.registerCommand("view", self.cmd_status)
+
         self.bot.registerCommand("maps", self.cmd_maps)
         self.bot.registerCommand("vote", self.cmd_vote)
         self.bot.registerCommand("votes", self.cmd_votes)
