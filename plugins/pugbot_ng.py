@@ -75,9 +75,10 @@ class ActivePUG:
 
 
 class QueuedQueue:
-    def __init__(self, players, _map):
+    def __init__(self, players, _map, region):
         self.players = players
         self._map = _map
+        self.region = region
 
 
 class PugbotPlugin:
@@ -120,6 +121,7 @@ class PugbotPlugin:
 
         self.Q = []
         self.votes = {}
+        self.regions = {}
         self.active = []
 
         self.queuedQueues = []
@@ -181,6 +183,11 @@ class PugbotPlugin:
     #------------------------------------------#
     """
 
+    _REGIONS = {
+        "na": "North America",
+        "eu": "Europe"
+    }
+
     def get_database(self):
         database = sqlite3.connect(self.bot.basepath +
                                    "/database/pugbot_ng.sqlite")
@@ -207,9 +214,26 @@ class PugbotPlugin:
 
         chosenMap = mapPool[random.randint(0, len(mapPool) - 1)]
 
+        regionVotes = list(self.regions.values())
+        numNA = regionVotes.count("na")
+        numEU = regionVotes.count("eu")
+        numANY = regionVotes.count("any")
+
+        maxRegion = max([numNA, numEU, numANY]) 
+
+        if numNA == numEU:
+            chosenRegion = "any"
+        elif maxRegion == numNA:
+            chosenRegion = "na"
+        elif maxRegion == numEU:
+            chosenRegion = "eu"
+        else:
+            chosenRegion = "any"
+
         s = None
         for server in self.servers:
-            if not server["active"] and server["connection"].test():
+            if not server["active"] and server["connection"].test() \
+            and (chosenRegion == "any" or chosenRegion == server["region"]):
                 s = server
                 s["active"] = True
                 break
@@ -217,15 +241,17 @@ class PugbotPlugin:
         if s is None:
             self.bot.say("Sorry, there are no servers available right now. "
                          "Once a server frees up, your PUG will start")
-            Q = QueuedQueue(self.Q[:], chosenMap)
+            Q = QueuedQueue(self.Q[:], chosenMap, chosenRegion)
             self.queuedQueues.append(Q)
             self.Q = []
             self.votes = {}
+            self.regions = {}
             return
 
         self.start_game(s, self.Q, chosenMap)
         self.Q = []
         self.votes = {}
+        self.regions = {}
 
     def start_game(self, s, players, chosenMap):
 
@@ -245,7 +271,7 @@ class PugbotPlugin:
         self.bot.say(
             "\x030,3 Ding ding ding! PUG #{} is starting on {} ({})! "
             "The map is {} "
-            .format(pugID, s["name"], s["region"].upper(), chosenMap))
+            .format(pugID, s["name"], self._REGIONS[s["region"]], chosenMap))
         self.bot.say("\x030,3 The captains are {} and {}! ".format(
             captains[0], captains[1]))
         self.bot.say("\x037 Players: " + ", ".join(players))
@@ -274,11 +300,19 @@ class PugbotPlugin:
     def cleanup_active(self):
         self.active = [pug for pug in self.active if pug.active]
         if self.running and self.queuedQueues:
-            for server in self.servers:
-                if not server["active"] and server["connection"].test():
-                    server["active"] = True
-                    Q = self.queuedQueues.pop(0)
-                    self.start_game(server, Q.players, Q._map)
+            toRemove = []
+            for i in range(len(self.queuedQueues)):
+                for server in self.servers:
+                    region = self.queuedQueues[i].region
+                    if not server["active"] and server["connection"].test() \
+                    and (region == "any" or region == server["region"]):
+                        server["active"] = True
+                        Q = self.queuedQueues[i]
+                        toRemove.append(i)
+                        self.start_game(server, Q.players, Q._map)
+
+            for i in toRemove[::-1]:
+                self.queuesQueues.pop(i)
 
     def write_to_database(self, pug, aborted):
         database, cursor = self.get_database()
@@ -441,9 +475,26 @@ class PugbotPlugin:
             return
 
         if issuedBy not in self.Q:
+            parts = [p.lower() for p in data.split(" ")]
+            if "na" in parts:
+                region = "na"
+                parts.remove("na")
+            elif "eu" in parts:
+                region = "eu"
+                parts.remove("eu")
+            else:
+                region = "any"
+
+            data = " ".join(parts)
+                
+            self.regions[issuedBy] = region
             self.Q.append(issuedBy)
-            self.bot.say("{} joined the queue ({}/{})"
-                         .format(issuedBy, len(self.Q), self.size))
+            self.bot.say("{} joined the queue{} ({}/{})"
+                         .format(issuedBy,
+                                 " from " + self._REGIONS[region]
+                                 if region != "any" else "",
+                                 len(self.Q),
+                                 self.size))
         else:
             self.bot.reply("You are already in the queue")
 
