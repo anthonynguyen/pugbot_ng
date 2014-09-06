@@ -239,8 +239,9 @@ class PugbotPlugin:
         database.close()
 
         self.bot.say(
-            "\x030,3 Ding ding ding! PUG #{} is starting! The map is {} "
-            .format(pugID, chosenMap))
+            "\x030,3 Ding ding ding! PUG #{} is starting on {} ({})! "
+            "The map is {} "
+            .format(pugID, s["name"], s["region"].upper(), chosenMap))
         self.bot.say("\x030,3 The captains are {} and {}! ".format(
             captains[0], captains[1]))
         self.bot.say("\x037 Players: " + ", ".join(players))
