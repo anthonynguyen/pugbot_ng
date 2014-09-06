@@ -527,11 +527,15 @@ class PugbotPlugin:
     def cmd_status(self, issuedBy, data):
         """- displays the status of the current queue"""
         for ind, Q in enumerate(self.queuedQueues):
-            self.bot.reply("Waiting list {} ({}): {}"
-                           .format(ind + 1, Q._map, ", ".join(Q.players)))
+            self.bot.reply(
+                "Waiting list {}{} ({}): {}"
+                .format(ind + 1,
+                        "" if Q.region == "any" else " - " +
+                        self._REGIONS[Q.region],
+                        Q._map, ", ".join(Q.players)))
 
         if len(self.Q) == 0:
-            self.bot.reply("Queue is empty (0/{})".format(self.size))
+            self.bot.reply("Current queue is empty (0/{})".format(self.size))
             return
 
         self.bot.reply("Current queue ({}/{}): {}"
