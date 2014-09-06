@@ -133,10 +133,6 @@ class PugbotPlugin:
 
             self.servers.append(server)
 
-
-        # self.bot.say("[pugbot-ng] {} available servers.".format(
-        #     len(self.servers)))
-
         self.bot.registerEvent("user_part", self.leave_handler)
         self.bot.registerEvent("user_quit", self.leave_handler)
         self.bot.registerEvent("nick_change", self.nick_handler)
@@ -180,7 +176,7 @@ class PugbotPlugin:
     #               Miscellaneous              #
     #------------------------------------------#
     """
-    
+
     def get_database(self):
         database = sqlite3.connect(self.bot.basepath +
                                    "/database/pugbot_ng.sqlite")
@@ -254,7 +250,6 @@ class PugbotPlugin:
                             chosenMap, self.checkmap, spass)
         self.active.append(thisPUG)
 
-        
         s["connection"].send("set g_password " + spass)
 
         s["connection"].send("exec {}".format(s["config_file"]))
@@ -338,7 +333,7 @@ class PugbotPlugin:
                         self.votes.pop(graduate)
                     self.bot.say("{} was moved to the ready queue."
                                  .format(graduate))
-        
+
         if remove > -1:
             del self.queuedQueues[remove]
 
@@ -597,7 +592,9 @@ class PugbotPlugin:
 
             self.bot.reply("\x030,3 PUG #{}     Started: {} minute{} ago     "
                            "Map: {} \x03 "
-                           .format(pug.pugID, minutes, "" if minutes == 1 else "s", pug.chosenMap))
+                           .format(pug.pugID, minutes,
+                                   "" if minutes == 1 else "s",
+                                   pug.chosenMap))
 
     def cmd_last(self, issuedBy, data):
         """- show the last pug that was played"""
@@ -616,7 +613,9 @@ class PugbotPlugin:
         minutes = (int(row[2]) - int(row[1])) // 60
 
         self.bot.reply("\x030,7 PUG #{}    Lasted: {} minute{}    "
-                       "Map: {} \x03".format(row[0], minutes, "" if minutes == 1 else "s", row[3]))
+                       "Map: {} \x03".format(row[0], minutes,
+                                             "" if minutes == 1 else "s",
+                                             row[3]))
 
     """
     #------------------------------------------#
