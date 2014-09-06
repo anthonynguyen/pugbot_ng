@@ -162,6 +162,7 @@ class PugbotPlugin:
         self.bot.registerCommand("ringers", self.cmd_ringers)
         self.bot.registerCommand("active", self.cmd_active)
         self.bot.registerCommand("last", self.cmd_last)
+        self.bot.registerCommand("region", self.cmd_region)
 
         self.bot.registerCommand("reports", self.cmd_reports, True)
         self.bot.registerCommand("forcestart", self.cmd_forcestart, True)
@@ -185,7 +186,8 @@ class PugbotPlugin:
 
     _REGIONS = {
         "na": "North America",
-        "eu": "Europe"
+        "eu": "Europe",
+        "any": "Any"
     }
 
     def get_database(self):
@@ -687,6 +689,25 @@ class PugbotPlugin:
                        "Map: {} \x03".format(row[0], minutes,
                                              "" if minutes == 1 else "s",
                                              row[3]))
+
+    def cmd_region(self, issuedBy, data):
+        """[region] - displays or sets your current region"""
+        if issuedBy not in self.Q:
+            self.bot.reply("You are not in the queue")
+
+        if not data:
+            self.bot.reply("Your current region is: " +
+                           self._REGIONS[self.regions[issuedBy]])
+            return
+
+        rawdata = data
+        data = data.strip().lower()
+        if data in ["any", "na", "eu"]:
+            self.regions[issuedBy] = data
+            self.bot.reply("Your region was changed to: " +
+                           self._REGIONS[data])
+        else:
+            self.bot.reply("'{}' is not a valid region".format(rawdata))
 
     """
     #------------------------------------------#
