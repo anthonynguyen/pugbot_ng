@@ -242,8 +242,10 @@ class PugbotPlugin:
                 break
 
         if s is None:
-            self.bot.say("Sorry, there are no servers available right now. "
-                         "Once a server frees up, your PUG will start")
+            self.bot.say("Sorry, there are no{} servers available right now. "
+                         "Once one frees up, your PUG will start"
+                         .format(""if chosenRegion == "any" else
+                                 " " + self._REGIONS[chosenRegion]))
             Q = QueuedQueue(self.Q[:], chosenMap, chosenRegion)
             self.queuedQueues.append(Q)
             self.Q = []
