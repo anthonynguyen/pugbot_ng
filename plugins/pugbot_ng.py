@@ -541,8 +541,20 @@ class PugbotPlugin:
 
     def cmd_votes(self, issuedBy, data):
         """- shows number of votes per map"""
+        if not self.Q:
+            self.bot.reply("The queue is empty")
+            return
+
+        self.bot.reply("Regions:")
+        regionVotes = list(self.regions.values())
+        for r in ["any", "eu", "na"]:
+            if regionVotes.count(r):
+                num = regionVotes.count(r)
+                self.bot.reply("{} {}".format(
+                    "{} ({}): ".format(r, num).ljust(11), "+" * num))
+
         if not self.votes:
-            self.bot.reply("There are no current votes")
+            self.bot.reply("There are no current map votes")
             return
 
         mapvotes = list(self.votes.values())
@@ -556,6 +568,7 @@ class PugbotPlugin:
                        .ljust(longLen + 1) + "+" * tallies[_map]
                        for _map in tallies]
 
+        self.bot.reply("Maps:")
         for vs in voteStrings:
             self.bot.reply(vs)
 
