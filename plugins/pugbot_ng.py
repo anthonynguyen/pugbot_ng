@@ -42,7 +42,7 @@ class ActivePUG:
         self.active = False
 
         self.server["active"] = False
-        
+
         if abort:
             self.server["connection"].send("map " + self.checkMap)
 
@@ -221,7 +221,7 @@ class PugbotPlugin:
         numEU = regionVotes.count("eu")
         numANY = regionVotes.count("any")
 
-        maxRegion = max([numNA, numEU, numANY]) 
+        maxRegion = max([numNA, numEU, numANY])
 
         if numNA == numEU:
             chosenRegion = "any"
@@ -234,8 +234,9 @@ class PugbotPlugin:
 
         s = None
         for server in self.servers:
-            if not server["active"] and server["connection"].test() \
-            and (chosenRegion == "any" or chosenRegion == server["region"]):
+            if (not server["active"] and server["connection"].test() and
+                    (chosenRegion == "any" or
+                     chosenRegion == server["region"])):
                 s = server
                 s["active"] = True
                 break
@@ -306,8 +307,9 @@ class PugbotPlugin:
             for i in range(len(self.queuedQueues)):
                 for server in self.servers:
                     region = self.queuedQueues[i].region
-                    if not server["active"] and server["connection"].test() \
-                    and (region == "any" or region == server["region"]):
+                    if (not server["active"] and server["connection"].test()
+                            and (region == "any" or
+                                 region == server["region"])):
                         server["active"] = True
                         Q = self.queuedQueues[i]
                         toRemove.append(i)
@@ -490,7 +492,7 @@ class PugbotPlugin:
                 region = "any"
 
             data = " ".join(parts)
-                
+
             self.regions[issuedBy] = region
             self.Q.append(issuedBy)
             self.bot.say("{} joined the queue{} ({}/{})"
