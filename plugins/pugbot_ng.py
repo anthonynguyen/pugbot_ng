@@ -346,8 +346,10 @@ class PugbotPlugin:
             self.bot.say("{} was removed from the queue ({}/{})"
                          .format(user, len(self.Q), self.size))
 
+            del self.regions[user]
+
             if user in self.votes:
-                self.votes.pop(user)
+                del self.votes[user]
 
             return
 
