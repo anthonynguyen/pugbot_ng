@@ -163,6 +163,7 @@ class PugbotPlugin:
         self.bot.registerCommand("active", self.cmd_active)
         self.bot.registerCommand("last", self.cmd_last)
         self.bot.registerCommand("region", self.cmd_region)
+        self.bot.registerCommand("servers", self.cmd_servers)
 
         self.bot.registerCommand("reports", self.cmd_reports, True)
         self.bot.registerCommand("forcestart", self.cmd_forcestart, True)
@@ -713,11 +714,26 @@ class PugbotPlugin:
         else:
             self.bot.reply("'{}' is not a valid region".format(rawdata))
 
+    def cmd_servers(self, issuedBy, data):
+        """- lists servers"""
+        ss = ["{} ({}):".format(s["name"], self._REGIONS[s["region"]]) 
+              for s in self.servers]
+        longLen = len(max(ss, key=len))
+
+        for s in self.servers:
+            self.bot.reply(
+                "{} {}"
+                .format("{} ({}):"
+                        .format(s["name"], self._REGIONS[s["region"]])
+                        .ljust(longLen),
+                "\x034 In use" if s["active"] else "\x033 Free"))
+
     """
     #------------------------------------------#
     #              Admin Commands              #
     #------------------------------------------#
     """
+
     def cmd_reports(self, issuedBy, data):
         """[number] - lists the last n reports"""
         try:
