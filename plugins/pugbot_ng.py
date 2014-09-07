@@ -296,7 +296,7 @@ class PugbotPlugin:
         captainString = "Captains are ^1" + " ^7and ^4".join(captains)
         s["connection"].send("set sv_joinmessage \"{}\"".format(captainString))
         s["connection"].send("g_motd \"PUG #{}\"".format(pugID))
-        s["connection"].send("sv_hostname \"{} [^2#pugbot-ng^7]\""
+        s["connection"].send("sv_hostname \"^7{} [^2#pugbot-ng^7]\""
                              .format(s["name"]))
         for user in players:
             self.bot.pm(user,
