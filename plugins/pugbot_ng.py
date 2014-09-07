@@ -720,7 +720,7 @@ class PugbotPlugin:
 
     def cmd_servers(self, issuedBy, data):
         """- lists servers"""
-        ss = ["{} ({}):".format(s["name"], self._REGIONS[s["region"]]) 
+        ss = ["{} ({}):".format(s["name"], self._REGIONS[s["region"]])
               for s in self.servers]
         longLen = len(max(ss, key=len))
 
@@ -730,9 +730,9 @@ class PugbotPlugin:
                 .format("{} ({}):"
                         .format(s["name"], self._REGIONS[s["region"]])
                         .ljust(longLen),
-                "\x033 Online\x03 ({}\x03)"
-                .format("\x034In use" if s["active"] else "\x033Free")
-                if s["connection"].test() else "\x034 Offline"))
+                        "\x033 Online\x03 ({}\x03)"
+                        .format("\x034In use" if s["active"] else "\x033Free")
+                        if s["connection"].test() else "\x034 Offline"))
 
     """
     #------------------------------------------#
