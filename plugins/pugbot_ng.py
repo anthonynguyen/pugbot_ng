@@ -730,7 +730,9 @@ class PugbotPlugin:
                 .format("{} ({}):"
                         .format(s["name"], self._REGIONS[s["region"]])
                         .ljust(longLen),
-                "\x034 In use" if s["active"] else "\x033 Free"))
+                "\x033 Online\x03 ({}\x03)"
+                .format("\x034In use" if s["active"] else "\x033Free")
+                if s["connection"].test() else "\x034 Offline"))
 
     """
     #------------------------------------------#
