@@ -208,11 +208,11 @@ class PugbotPlugin:
             removeQueue = []
             for user, idle in self.idleTimes.items():
                 print(user + ": " + str(idle - now))
-                if now - idle > 15:
+                if now - idle > 600:
                     self.bot.pm(user, "You have been idle for too long, "
                                       "so you've been removed from the queue.")
                     removeQueue.append(user)
-                elif now - idle > 10:
+                elif now - idle > 540:
                     self.bot.pm(user, "You have been idle for a while. "
                                       "Please say something to "
                                       "keep your place in the queue.")
