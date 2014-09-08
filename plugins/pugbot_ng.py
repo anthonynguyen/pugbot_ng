@@ -142,6 +142,8 @@ class PugbotPlugin:
         self.bot.registerEvent("user_part", self.leave_handler)
         self.bot.registerEvent("user_quit", self.leave_handler)
         self.bot.registerEvent("nick_change", self.nick_handler)
+        self.bot.registerEvent("private_message", self.chat_handler)
+        self.bot.registerEvent("public_message", self.chat_handler)
 
         self.bot.registerCommand("join", self.cmd_join)
         self.bot.registerCommand("add", self.cmd_join)
@@ -212,7 +214,7 @@ class PugbotPlugin:
                     removeQueue.append(user)
                 elif now - idle > 10:
                     self.bot.pm(user, "You have been idle for a while. "
-                                      "Please issue the .checkin command to "
+                                      "Please say something to "
                                       "keep your place in the queue.")
 
             for user in removeQueue:
@@ -277,12 +279,14 @@ class PugbotPlugin:
             self.Q = []
             self.votes = {}
             self.regions = {}
+            self.idleTimes = {}
             return
 
         self.start_game(s, self.Q, chosenMap)
         self.Q = []
         self.votes = {}
         self.regions = {}
+        self.idleTimes = {}
 
     def start_game(self, s, players, chosenMap):
 
@@ -489,6 +493,10 @@ class PugbotPlugin:
             if old in Q.players:
                 Q.players.remove(old)
                 Q.players.append(new)
+
+    def chat_handler(self, ev):
+        if ev.source.nick in self.idleTimes:
+            self.idleTimes[ev.source.nick] = time.time()
 
     """
     #------------------------------------------#
