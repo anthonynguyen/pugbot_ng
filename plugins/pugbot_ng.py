@@ -138,7 +138,7 @@ class PugbotPlugin:
                 s["host"], s["port"], s["password"])
 
             self.servers.append(server)
-
+    
         self.bot.registerEvent("user_part", self.leave_handler)
         self.bot.registerEvent("user_quit", self.leave_handler)
         self.bot.registerEvent("nick_change", self.nick_handler)
@@ -173,6 +173,10 @@ class PugbotPlugin:
         self.ringerSpamThread = threading.Thread(target=self.spam_ringers)
         self.ringerSpamThread.start()
 
+        self.idleTimes = {}
+        self.idleCheckThread = threading.Thread(target=self.check_idlers)
+        self.idleCheckThread.start()
+
     def shutdown(self):
         self.running = False
         self.queuedQueues = []
@@ -195,6 +199,27 @@ class PugbotPlugin:
         database = sqlite3.connect(self.bot.basepath +
                                    "/database/pugbot_ng.sqlite")
         return database, database.cursor()
+
+    def check_idlers(self):
+        while self.running:
+            now = time.time()
+            removeQueue = []
+            for user, idle in self.idleTimes.items():
+                print(user + ": " + str(idle - now))
+                if now - idle > 15:
+                    self.bot.pm(user, "You have been idle for too long, "
+                                      "so you've been removed from the queue.")
+                    removeQueue.append(user)
+                elif now - idle > 10:
+                    self.bot.pm(user, "You have been idle for a while. "
+                                      "Please issue the .checkin command to "
+                                      "keep your place in the queue.")
+
+            for user in removeQueue:
+                self.remove_user(user)
+
+            time.sleep(5)
+            
 
     def spam_ringers(self):
         while self.running:
@@ -353,8 +378,14 @@ class PugbotPlugin:
             self.Q.remove(user)
             self.bot.say("{} was removed from the queue ({}/{})"
                          .format(user, len(self.Q), self.size))
+    
+            # We're being super defensive here
+            if user in self.regions:
+                del self.regions[user]
 
-            del self.regions[user]
+            # Here too
+            if user in self.idleTimes:
+                del self.idleTimes[user]
 
             if user in self.votes:
                 del self.votes[user]
@@ -446,9 +477,13 @@ class PugbotPlugin:
             self.Q.remove(old)
             self.Q.append(new)
 
+        if old in self.idleTimes:
+            self.idleTimes[new] = self.idleTimes[old]
+            del self.idleTimes[old]
+
         if old in self.votes:
             self.votes[new] = self.votes[old]
-            self.votes.pop(old)
+            del self.votes[old]
 
         for Q in self.queuedQueues:
             if old in Q.players:
@@ -497,8 +532,11 @@ class PugbotPlugin:
 
             data = " ".join(parts)
 
-            self.regions[issuedBy] = region
             self.Q.append(issuedBy)
+            
+            self.regions[issuedBy] = region
+            self.idleTimes[issuedBy] = time.time()
+
             self.bot.say("{} joined the queue{} ({}/{})"
                          .format(issuedBy,
                                  " from " + self._REGIONS[region]
