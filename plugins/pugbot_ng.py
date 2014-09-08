@@ -43,10 +43,10 @@ class ActivePUG:
 
         self.server["active"] = False
 
+        self.server["connection"].send("set g_password " + genRandomString(5))
+
         if abort:
             self.server["connection"].send("map " + self.checkMap)
-
-        self.server["connection"].send("set g_password " + genRandomString(5))
 
         self.pugbot.write_to_database(self, abort)
 
