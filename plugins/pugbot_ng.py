@@ -75,10 +75,11 @@ class ActivePUG:
 
 
 class QueuedQueue:
-    def __init__(self, players, _map, region):
+    def __init__(self, players, _map, region, gt):
         self.players = players
         self._map = _map
         self.region = region
+        self.gametype = gt
 
 
 class PugbotPlugin:
@@ -109,6 +110,7 @@ class PugbotPlugin:
             `id` INTEGER NULL DEFAULT NULL,
             `start` INTEGER NULL DEFAULT NULL,
             `end` INTEGER NULL DEFAULT NULL,
+            `gametype` TEXT NULL DEFAULT NULL,
             `map` TEXT NULL DEFAULT NULL,
             `players` TEXT NULL DEFAULT NULL,
             `captains` TEXT NULL DEFAULT NULL,
@@ -197,6 +199,12 @@ class PugbotPlugin:
         "any": "Any"
     }
 
+    _GAMETYPES = {
+        "ts": "Team Survivor",
+        "ctf": "Capture the Flag",
+        "bomb": "Bomb"
+    }
+
     def get_database(self):
         database = sqlite3.connect(self.bot.basepath +
                                    "/database/pugbot_ng.sqlite")
@@ -207,7 +215,6 @@ class PugbotPlugin:
             now = time.time()
             removeQueue = []
             for user, idle in self.idleTimes.items():
-                print(user + ": " + str(idle - now))
                 if now - idle > 600:
                     self.bot.pm(user, "You have been idle for too long, "
                                       "so you've been removed from the queue.")
@@ -233,7 +240,8 @@ class PugbotPlugin:
             self.bot.say("A game cannot be started with fewer than 2 players.")
             return
 
-        mapVotes = list(self.votes.values())
+        mapVotes = [self.votes[x][1] for x in self.votes
+                    if self.votes[x][1] is not None]
 
         if not mapVotes:
             mapVotes = self.maps
@@ -243,6 +251,12 @@ class PugbotPlugin:
                    if mapVotes.count(mapname) == maxVotes]
 
         chosenMap = mapPool[random.randint(0, len(mapPool) - 1)]
+
+        gtVotes = [self.votes[x][0] for x in self.votes]
+        maxVotes = max([gtVotes.count(gt) for gt in gtVotes])
+        gtPool = [gt for gt in gtVotes if gtVotes.count(gt) == maxVotes]
+
+        chosenGT = gtPool[random.randint(0, len(gtPool) - 1)]
 
         regionVotes = list(self.regions.values())
         numNA = regionVotes.count("na")
@@ -274,7 +288,7 @@ class PugbotPlugin:
                          "Once one frees up, your PUG will start"
                          .format(""if chosenRegion == "any" else
                                  " " + self._REGIONS[chosenRegion]))
-            Q = QueuedQueue(self.Q[:], chosenMap, chosenRegion)
+            Q = QueuedQueue(self.Q[:], chosenMap, chosenRegion, chosenGT)
             self.queuedQueues.append(Q)
             self.Q = []
             self.votes = {}
@@ -282,13 +296,13 @@ class PugbotPlugin:
             self.idleTimes = {}
             return
 
-        self.start_game(s, self.Q, chosenMap)
+        self.start_game(s, self.Q, chosenMap, chosenGT)
         self.Q = []
         self.votes = {}
         self.regions = {}
         self.idleTimes = {}
 
-    def start_game(self, s, players, chosenMap):
+    def start_game(self, s, players, chosenMap, gametype):
 
         now = int(time.time())
 
@@ -296,17 +310,19 @@ class PugbotPlugin:
 
         database, cursor = self.get_database()
         cursor.execute(
-            "INSERT INTO pugs (start, end, map, players, captains, status) \
-            VALUES(?, -1, ?, ?, ?, 'in progress')",
-            (now, chosenMap, ", ".join(players), ", ".join(captains)))
+            "INSERT INTO pugs (start, end, gametype,\
+                               map, players, captains, status) \
+            VALUES(?, -1, ?, ?, ?, ?, 'in progress')",
+            (now, gametype, chosenMap, ", ".join(players), ", ".join(captains)))
         database.commit()
         pugID = cursor.lastrowid
         database.close()
 
         self.bot.say(
             "\x030,3 Ding ding ding! PUG #{} is starting on {} ({})! "
-            "The map is {} "
-            .format(pugID, s["name"], self._REGIONS[s["region"]], chosenMap))
+            "The game will be {} on {} "
+            .format(pugID, s["name"], self._REGIONS[s["region"]],
+                    self._GAMETYPES[gametype], chosenMap))
         self.bot.say("\x030,3 The captains are {} and {}! ".format(
             captains[0], captains[1]))
         self.bot.say("\x037 Players: " + ", ".join(players))
@@ -318,7 +334,7 @@ class PugbotPlugin:
 
         s["connection"].send("set g_password " + spass)
 
-        s["connection"].send("exec {}".format(s["config_file"]))
+        s["connection"].send("exec {}".format(s["config_file"][gametype]))
         s["connection"].send("set g_motd \"PUG #{}\"".format(pugID))
         captainString = "Captains are ^1" + " ^7and ^4".join(captains)
         s["connection"].send("set sv_joinmessage \"{}\"".format(captainString))
@@ -346,10 +362,10 @@ class PugbotPlugin:
                         server["active"] = True
                         Q = self.queuedQueues[i]
                         toRemove.append(i)
-                        self.start_game(server, Q.players, Q._map)
+                        self.start_game(server, Q.players, Q._map, Q.gametype)
 
             for i in toRemove[::-1]:
-                self.queuesQueues.pop(i)
+                self.queuedQueues.pop(i)
 
     def write_to_database(self, pug, aborted):
         database, cursor = self.get_database()
@@ -445,20 +461,42 @@ class PugbotPlugin:
         return matches
 
     def vote_helper(self, player, string):
+        explicitGametype = False
+        parts = string.split(" ")
+        gametype = "ts"
+        for part in parts:
+            if part.lower() in self._GAMETYPES:
+                explicitGametype = True
+                gametype = part.lower()
+                parts.remove(part)
+                string = " ".join(parts)
+                break
+
+        self.votes[player] = [gametype, None]
+
         mapMatches = self.resolve_map(string)
 
-        if not string:
-            return
-
         if not mapMatches:
-            self.bot.reply("{} is not a valid map".format(string))
+            if explicitGametype:
+                self.bot.say("{} voted for {}"
+                             .format(player, self._GAMETYPES[gametype]))
+
+            if string:
+                self.bot.reply("{} is not a valid map".format(string))
         elif len(mapMatches) > 1:
+            if explicitGametype:
+                self.bot.say("{} voted for {}"
+                             .format(player, self._GAMETYPES[gametype]))
+
             self.bot.reply(
                 "There are multiple matches for '{}': ".format(string) +
                 ", ".join(mapMatches))
         else:
-            self.votes[player] = mapMatches[0]
-            self.bot.say("{} voted for {}".format(player, mapMatches[0]))
+            self.votes[player][1] = mapMatches[0]
+            self.bot.say("{} voted for {} on {}"
+                         .format(player, self._GAMETYPES[gametype],
+                                 mapMatches[0]))
+            return
 
     def time_string(self, time):
         return datetime.datetime.fromtimestamp(
