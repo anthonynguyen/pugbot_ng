@@ -291,13 +291,14 @@ class PugbotPlugin:
 
         s["connection"].send("exec {}".format(s["config_file"]))
         s["connection"].send("set g_motd \"PUG #{}\"".format(pugID))
+        captainString = "Captains are ^1" + " ^7and ^4".join(captains)
+        s["connection"].send("set sv_joinmessage \"{}\"".format(captainString))
+        s["connection"].send("sv_hostname \"^7{} [^8#pugbot-ng^7]\""
+                             .format(s["name"]))
+
         s["connection"].send("map ut4_" + chosenMap)
         s["connection"].send("set g_nextmap " + self.checkmap)
 
-        captainString = "Captains are ^1" + " ^7and ^4".join(captains)
-        s["connection"].send("set sv_joinmessage \"{}\"".format(captainString))
-        s["connection"].send("sv_hostname \"^7{} [^2#pugbot-ng^7]\""
-                             .format(s["name"]))
         for user in players:
             self.bot.pm(user,
                         ("The PUG is starting: /connect {}:{};" +
