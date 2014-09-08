@@ -613,10 +613,11 @@ class PugbotPlugin:
         """- displays the status of the current queue"""
         for ind, Q in enumerate(self.queuedQueues):
             self.bot.reply(
-                "Waiting list {}{} ({}): {}"
+                "Waiting list {}{} ({} on {}): {}"
                 .format(ind + 1,
                         "" if Q.region == "any" else " - " +
                         self._REGIONS[Q.region],
+                        self._GAMETYPES[Q.gametype],
                         Q._map, ", ".join(Q.players)))
 
         if len(self.Q) == 0:
@@ -643,7 +644,7 @@ class PugbotPlugin:
             self.bot.reply("The queue is empty")
             return
 
-        self.bot.reply("Regions:")
+        self.bot.reply("\x032Regions:")
         regionVotes = list(self.regions.values())
         for r in ["any", "eu", "na"]:
             if regionVotes.count(r):
@@ -651,11 +652,27 @@ class PugbotPlugin:
                 self.bot.reply("{} {}".format(
                     "{} ({}): ".format(r, num).ljust(11), "+" * num))
 
-        if not self.votes:
+        self.bot.reply("\x033Gametypes:")
+        gtVotes = [self.votes[x][0] for x in self.votes]
+
+        tallies = dict((gt, gtVotes.count(gt)) for gt in gtVotes)
+        voteStrings = ["{} ({}): ".format(self._GAMETYPES[gt], tallies[gt])
+                       for gt in tallies]
+
+        longLen = len(max(voteStrings, key=len))
+        voteStrings = ["{} ({}): ".format(self._GAMETYPES[gt], tallies[gt])
+                       .ljust(longLen + 1) + "+" * tallies[gt]
+                       for gt in tallies]
+
+        for vs in voteStrings:
+            self.bot.reply(vs)
+
+        mapvotes = [self.votes[x][1] for x in self.votes if
+                    self.votes[x][1] is not None]
+        if not mapvotes:
             self.bot.reply("There are no current map votes")
             return
 
-        mapvotes = list(self.votes.values())
         tallies = dict((_map, mapvotes.count(_map)) for _map in mapvotes)
 
         voteStrings = ["{} ({}): ".format(_map, tallies[_map])
@@ -666,7 +683,7 @@ class PugbotPlugin:
                        .ljust(longLen + 1) + "+" * tallies[_map]
                        for _map in tallies]
 
-        self.bot.reply("Maps:")
+        self.bot.reply("\x036Maps:")
         for vs in voteStrings:
             self.bot.reply(vs)
 
