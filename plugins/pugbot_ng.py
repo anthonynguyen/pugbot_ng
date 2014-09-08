@@ -471,8 +471,12 @@ class PugbotPlugin:
                 parts.remove(part)
                 string = " ".join(parts)
                 break
+        
+        if player not in self.votes:
+            self.votes[player] = [gametype, None]
 
-        self.votes[player] = [gametype, None]
+        if explicitGametype and gametype != self.votes[player][0]:
+            self.votes[player][0] = gametype
 
         mapMatches = self.resolve_map(string)
 
@@ -493,10 +497,12 @@ class PugbotPlugin:
                 ", ".join(mapMatches))
         else:
             self.votes[player][1] = mapMatches[0]
-            self.bot.say("{} voted for {} on {}"
-                         .format(player, self._GAMETYPES[gametype],
-                                 mapMatches[0]))
-            return
+            if explicitGametype:
+                self.bot.say("{} voted for {} on {}"
+                             .format(player, self._GAMETYPES[gametype],
+                                     mapMatches[0]))
+            else:
+                self.bot.say("{} voted for {}".format(player, mapMatches[0]))
 
     def time_string(self, time):
         return datetime.datetime.fromtimestamp(
