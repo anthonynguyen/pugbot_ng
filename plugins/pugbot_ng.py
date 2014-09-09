@@ -158,7 +158,10 @@ class PugbotPlugin:
         self.bot.registerCommand("view", self.cmd_status)
 
         self.bot.registerCommand("maps", self.cmd_maps)
+
         self.bot.registerCommand("vote", self.cmd_vote)
+        self.bot.registerCommand("map", self.cmd_vote)
+
         self.bot.registerCommand("votes", self.cmd_votes)
         self.bot.registerCommand("abort", self.cmd_abort)
         self.bot.registerCommand("report", self.cmd_report)
@@ -227,7 +230,7 @@ class PugbotPlugin:
             for user in removeQueue:
                 self.remove_user(user)
 
-            time.sleep(5)
+            time.sleep(20)
             
 
     def spam_ringers(self):
