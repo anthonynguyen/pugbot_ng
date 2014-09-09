@@ -1,7 +1,7 @@
 {
     "port": 6667,
     "owners": [
-        "owner"
+        "owner.domain.ext"
     ],
     "nick": "pugbot-ng",
     "server": "irc.quakenet.org",
