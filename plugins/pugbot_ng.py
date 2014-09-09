@@ -218,11 +218,11 @@ class PugbotPlugin:
             now = time.time()
             removeQueue = []
             for user, idle in self.idleTimes.items():
-                if now - idle > 600:
+                if now - idle > 1200:
                     self.bot.pm(user, "You have been idle for too long, "
                                       "so you've been removed from the queue.")
                     removeQueue.append(user)
-                elif now - idle > 540:
+                elif now - idle > 1080:
                     self.bot.pm(user, "You have been idle for a while. "
                                       "Please say something to "
                                       "keep your place in the queue.")
@@ -230,7 +230,7 @@ class PugbotPlugin:
             for user in removeQueue:
                 self.remove_user(user)
 
-            time.sleep(20)
+            time.sleep(30)
             
 
     def spam_ringers(self):
