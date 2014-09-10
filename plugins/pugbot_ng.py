@@ -236,7 +236,7 @@ class PugbotPlugin:
     def spam_ringers(self):
         while self.running:
             self.output_ringers(self.bot.say)
-            time.sleep(60)
+            time.sleep(90)
 
     def queue_full(self):
         if len(self.Q) < 2:
