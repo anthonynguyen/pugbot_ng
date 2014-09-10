@@ -399,7 +399,11 @@ class PugbotPlugin:
     def remove_user(self, user):
         if user in self.Q:
             self.Q.remove(user)
-            self.bot.say("{} was removed from the queue ({}/{})"
+            if random.randrange(0, 100) < 10:
+                self.bot.say("{} ragequit like a baby! ({}/{})"
+                         .format(user, len(self.Q), self.size))
+            else:
+                self.bot.say("{} was removed from the queue ({}/{})"
                          .format(user, len(self.Q), self.size))
     
             # We're being super defensive here
