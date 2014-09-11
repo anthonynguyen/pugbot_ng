@@ -175,6 +175,8 @@ class PugbotPlugin:
         self.bot.registerCommand("reports", self.cmd_reports, True)
         self.bot.registerCommand("forcestart", self.cmd_forcestart, True)
         self.bot.registerCommand("remove", self.cmd_remove, True)
+        self.bot.registerCommand("cancelringers", self.cmd_cancelringers,
+                                 True)
 
         self.running = True
         self.ringerSpamThread = threading.Thread(target=self.spam_ringers)
@@ -510,6 +512,18 @@ class PugbotPlugin:
                                      mapMatches[0]))
             else:
                 self.bot.say("{} voted for {}".format(player, mapMatches[0]))
+
+    def find_active_pug(self, string):
+        try:
+            num = int(string)
+        except:
+            return None
+
+        for pug in self.active:
+            if num == pug.pugID:
+                return pug
+        
+        return None
 
     def time_string(self, time):
         return datetime.datetime.fromtimestamp(
@@ -889,3 +903,13 @@ class PugbotPlugin:
             return
 
         self.remove_user(data.strip())
+
+    def cmd_cancelringers(self, issuedBy, data):
+        """- cancels the ringer requests for a game"""
+        pug = self.find_active_pug(data)
+
+        if pug is None:
+            self.bot.reply("'{}' is not a valid PUG number".format(data))
+
+        pug.ringersNeeded = 0
+        self.bot.reply("Ringer requests cleared for PUG #{}".format(pug.pugID))
