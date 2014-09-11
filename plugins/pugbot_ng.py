@@ -177,6 +177,7 @@ class PugbotPlugin:
         self.bot.registerCommand("remove", self.cmd_remove, True)
         self.bot.registerCommand("cancelringers", self.cmd_cancelringers,
                                  True)
+        self.bot.registerCommand("forcestop", self.cmd_forcestop, True)
 
         self.running = True
         self.ringerSpamThread = threading.Thread(target=self.spam_ringers)
@@ -910,6 +911,17 @@ class PugbotPlugin:
 
         if pug is None:
             self.bot.reply("'{}' is not a valid PUG number".format(data))
+            return
 
         pug.ringersNeeded = 0
         self.bot.reply("Ringer requests cleared for PUG #{}".format(pug.pugID))
+
+    def cmd_forcestop(self, issuedBy, data):
+        """- stops an active game"""
+        pug = self.find_active_pug(data)
+
+        if pug is None:
+            self.bot.reply("'{}' is not a valid PUG number".format(data))
+            return
+
+        pug.abort()
