@@ -868,10 +868,15 @@ class PugbotPlugin:
     def cmd_topmaps(self, issuedBy, data):
         """- show the top 5 played maps"""
         database, cursor = self.get_database()
-        stats = cursor.execute("SELECT map, count(map) FROM pugs GROUP by map ORDER by count(map) DESC LIMIT 5;")
+        stats = cursor.execute(
+            "SELECT map, count(map) FROM pugs \
+            GROUP by map ORDER by count(map) DESC LIMIT 5;")
         row = stats.fetchall()
+        database.close()
+
         row = [list(row) for row in row]
-        self.bot.reply("Top maps: " + ", ".join(["{} ({})".format(r[0], r[1]) for r in row]))
+        self.bot.reply("Top maps: " +
+                       ", ".join(["{} ({})".format(r[0], r[1]) for r in row]))
         
     """
     #------------------------------------------#
