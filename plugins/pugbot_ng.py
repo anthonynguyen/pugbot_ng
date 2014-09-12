@@ -561,6 +561,11 @@ class PugbotPlugin:
                 Q.players.remove(old)
                 Q.players.append(new)
 
+        for pug in self.active:
+            if old in pug.players:
+                pug.players.remove(old)
+                pug.players.append(new)
+
     def chat_handler(self, ev):
         if ev.source.nick in self.idleTimes:
             self.idleTimes[ev.source.nick] = time.time()
