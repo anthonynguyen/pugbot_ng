@@ -171,6 +171,7 @@ class PugbotPlugin:
         self.bot.registerCommand("last", self.cmd_last)
         self.bot.registerCommand("region", self.cmd_region)
         self.bot.registerCommand("servers", self.cmd_servers)
+        self.bot.registerCommand("topmaps", self.cmd_topmaps)
 
         self.bot.registerCommand("reports", self.cmd_reports, True)
         self.bot.registerCommand("forcestart", self.cmd_forcestart, True)
@@ -864,6 +865,14 @@ class PugbotPlugin:
                         .format("\x034In use" if s["active"] else "\x033Free")
                         if s["connection"].test() else "\x034 Offline"))
 
+    def cmd_topmaps(self, issuedBy, data):
+        """- show the top 5 played maps"""
+        database, cursor = self.get_database()
+        stats = cursor.execute("SELECT map, count(map) FROM pugs GROUP by map ORDER by count(map) DESC LIMIT 5;")
+        row = stats.fetchall()
+        row = [list(row) for row in row]
+        self.bot.reply("Top maps: " + ", ".join(["{} ({})".format(r[0], r[1]) for r in row]))
+        
     """
     #------------------------------------------#
     #              Admin Commands              #

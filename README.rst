@@ -24,6 +24,7 @@ Commands:
 * ``ringers``
 * ``region``
 * ``servers``
+* ``topmaps``
 
 Admin commands:
 
