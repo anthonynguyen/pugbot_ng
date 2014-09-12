@@ -833,7 +833,7 @@ class PugbotPlugin:
         self.bot.reply("\x030,7 PUG #{}    Lasted: {} minute{}    "
                        "Map: {} \x03".format(row[0], minutes,
                                              "" if minutes == 1 else "s",
-                                             row[3]))
+                                             row[4]))
 
     def cmd_region(self, issuedBy, data):
         """[region] - displays or sets your current region"""
