@@ -6,5 +6,5 @@
     "nick": "pugbot-ng",
     "server": "irc.quakenet.org",
     "prefixes": ".",
-    "channel": "#pugbot-ng"
+    "channel": "#pugbot"
 }
