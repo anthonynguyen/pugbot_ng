@@ -179,6 +179,7 @@ class PugbotPlugin:
         self.bot.registerCommand("cancelringers", self.cmd_cancelringers,
                                  True)
         self.bot.registerCommand("forcestop", self.cmd_forcestop, True)
+        self.bot.registerCommand("ban", self.cmd_ban, True)
 
         self.running = True
         self.ringerSpamThread = threading.Thread(target=self.spam_ringers)
@@ -187,6 +188,8 @@ class PugbotPlugin:
         self.idleTimes = {}
         self.idleCheckThread = threading.Thread(target=self.check_idlers)
         self.idleCheckThread.start()
+
+        self.bot.pm("Q@CServe.quakenet.org", "AUTH {} {}".format(config["auth_user"], config["auth_pass"]))
 
     def shutdown(self):
         self.running = False
@@ -823,12 +826,21 @@ class PugbotPlugin:
             self.bot.reply("There is no recently played PUG")
             return
 
-        minutes = (int(row[2]) - int(row[1])) // 60
+        minutes = (int(time.time()) - int(row[1])) // 60
 
-        self.bot.reply("\x030,7 PUG #{}    Lasted: {} minute{}    "
-                       "Map: {} \x03".format(row[0], minutes,
+        if minutes > 1440:
+            when = "day"
+            minutes = (minutes // 60) / 24
+        elif minutes > 59:
+            when = "hour"
+            minutes = minutes // 60
+        else:
+            when = "minute"
+
+        self.bot.reply("\x030,7 PUG #{}    Ended: {} {}{} ago     "
+                       "Map: {}     Type: {} \x03".format(row[0], minutes, when,
                                              "" if minutes == 1 else "s",
-                                             row[4]))
+                                             row[4], row[3]))
 
     def cmd_region(self, issuedBy, data):
         """[region] - displays or sets your current region"""
@@ -934,3 +946,14 @@ class PugbotPlugin:
             return
 
         pug.abort()
+
+    def cmd_ban(self, issuedBy, data):
+        """[host] [length] ([reason]) - ban a player from the channel for x time"""
+        if not data:
+            self.bot.reply("Not enough parameters given")
+            return
+
+        data = data.split()
+        hostmask, length, *reason = data
+
+        self.bot.pm("Q", "TEMPBAN {} *!*@{} {} {}".format(self.bot.channel, hostmask, length, " ".join(reason)))

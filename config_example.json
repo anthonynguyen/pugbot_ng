@@ -6,5 +6,7 @@
     "nick": "pugbot-ng",
     "server": "irc.quakenet.org",
     "prefixes": ".",
-    "channel": "#pugbot-ng"
+    "channel": "#pugbot-ng",
+    "auth_user": "",
+    "auth_pass": ""
 }
