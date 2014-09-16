@@ -221,7 +221,8 @@ class PugbotPlugin:
         while self.running:
             now = time.time()
             removeQueue = []
-            for user, idle in self.idleTimes.items():
+            idleTimes = list(self.idleTimes.items())
+            for user, idle in idleTimes:
                 if now - idle > 1200:
                     self.bot.pm(user, "You have been idle for too long, "
                                       "so you've been removed from the queue.")
