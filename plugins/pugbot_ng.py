@@ -189,8 +189,6 @@ class PugbotPlugin:
         self.idleCheckThread = threading.Thread(target=self.check_idlers)
         self.idleCheckThread.start()
 
-        self.bot.pm("Q@CServe.quakenet.org", "AUTH {} {}".format(config["auth_user"], config["auth_pass"]))
-
     def shutdown(self):
         self.running = False
         self.queuedQueues = []
