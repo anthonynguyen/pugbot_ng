@@ -347,7 +347,7 @@ class PugbotPlugin:
         s["connection"].send("set g_motd \"PUG #{}\"".format(pugID))
         captainString = "Captains are ^1" + " ^7and ^4".join(captains)
         s["connection"].send("set sv_joinmessage \"{}\"".format(captainString))
-        s["connection"].send("sv_hostname \"^7{} [^6#pugbot-ng^7]\""
+        s["connection"].send("sv_hostname \"^7{} [^6#pugbot^7]\""
                              .format(s["name"]))
 
         s["connection"].send("map ut4_" + chosenMap)
