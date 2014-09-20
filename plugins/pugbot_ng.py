@@ -830,11 +830,11 @@ class PugbotPlugin:
             self.bot.reply("There is no recently played PUG")
             return
 
-        minutes = (int(time.time()) - int(row[1])) // 60
+        minutes = (int(time.time()) - int(row[2])) // 60
 
         if minutes > 1440:
             when = "day"
-            minutes = (minutes // 60) / 24
+            minutes = (minutes // 60) // 24
         elif minutes > 59:
             when = "hour"
             minutes = minutes // 60
