@@ -893,8 +893,8 @@ class PugbotPlugin:
     def cmd_party(self, issuedBy, data):
         """- have a party!"""
         dance = ["\o\\", "/o/", "\\o_", "_o/", "_o_", "\\o/"]
-        for i in range(0, len(dance)):
-            self.bot.reply(dance[i])
+        for _ in range(0, len(dance)):
+            self.bot.reply(random.choice(dance))
 
     def cmd_reports(self, issuedBy, data):
         """[number] - lists the last n reports"""
