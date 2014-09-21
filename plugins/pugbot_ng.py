@@ -180,6 +180,7 @@ class PugbotPlugin:
                                  True)
         self.bot.registerCommand("forcestop", self.cmd_forcestop, True)
         self.bot.registerCommand("ban", self.cmd_ban, True)
+        self.bot.registerCommand("party", self.cmd_party, True)
 
         self.running = True
         self.ringerSpamThread = threading.Thread(target=self.spam_ringers)
@@ -899,6 +900,12 @@ class PugbotPlugin:
     #              Admin Commands              #
     #------------------------------------------#
     """
+
+    def cmd_party(self, issuedBy, data):
+        """- have a party!"""
+        dance = ["\o\\", "/o/", "\\o_", "_o/", "_o_", "\\o/"]
+        for _ in range(0, len(dance)):
+            self.bot.reply(random.choice(dance))
 
     def cmd_reports(self, issuedBy, data):
         """[number] - lists the last n reports"""
