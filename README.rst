@@ -25,6 +25,8 @@ Commands:
 * ``region``
 * ``servers``
 * ``topmaps``
+* ``party``
+* ``ban``
 
 Admin commands:
 
@@ -51,7 +53,7 @@ Discussion
 
 Please report bugs using `GitHub Issues`_.
 
-You can also join ``#pugbot-ng`` on `Quakenet`_ to ask questions or get involved.
+You can also join ``#pugbot`` on `Quakenet`_ to ask questions or get involved.
 
 .. _`GitHub Issues`: https://github.com/clearskies/pugbot_ng/issues
 .. _`Quakenet`: https://www.quakenet.org/
